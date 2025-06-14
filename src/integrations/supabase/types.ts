@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      debts: {
+        Row: {
+          amount: number
+          created_at: string | null
+          due_date: string
+          id: string
+          interest_rate: number | null
+          name: string
+          paid_amount: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          due_date: string
+          id?: string
+          interest_rate?: number | null
+          name: string
+          paid_amount?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          due_date?: string
+          id?: string
+          interest_rate?: number | null
+          name?: string
+          paid_amount?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
