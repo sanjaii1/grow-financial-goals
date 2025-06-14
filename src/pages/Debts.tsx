@@ -53,8 +53,18 @@ const Debts = () => {
     const parsedAmount = parseFloat(form.amount);
     const parsedInterest = form.interest_rate ? parseFloat(form.interest_rate) : null;
 
+    // Fetch the authenticated user's id
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData || !authData.user) {
+      toast({ title: "Error", description: "Not authenticated. Please login." });
+      setAdding(false);
+      return;
+    }
+    const userId = authData.user.id;
+
     const { error } = await supabase.from("debts").insert([
       {
+        user_id: userId,
         name: form.name,
         amount: parsedAmount,
         interest_rate: parsedInterest,
@@ -196,3 +206,4 @@ const Debts = () => {
 };
 
 export default Debts;
+
