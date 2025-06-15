@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useMemo, useState, useRef } from "react";
@@ -16,6 +17,7 @@ import { format, startOfToday, endOfToday, startOfWeek, endOfWeek, startOfMonth,
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Progress } from "@/components/ui/progress";
 
 const fetchDashboardData = async () => {
   const { data: { user } } = await supabase.auth.getUser();
@@ -132,13 +134,19 @@ const DashboardOverview = ({ date }: { date?: DateRange }) => {
   const totalExpenses = filteredData?.expenses.reduce((acc, expense) => acc + expense.amount, 0) || 0;
   const balance = totalIncome - totalExpenses;
   const totalSaved = data?.savingsGoals.reduce((acc, goal) => acc + goal.current_amount, 0) || 0;
-  const remainingDebt = data?.debts.reduce((acc, debt) => acc + (debt.amount - (debt.paid_amount || 0)), 0) || 0;
+
+  const totalDebt = data?.debts.reduce((acc, debt) => acc + debt.amount, 0) || 0;
+  const totalPaidDebt = data?.debts.reduce((acc, debt) => acc + (debt.paid_amount || 0), 0) || 0;
+  const remainingDebt = totalDebt - totalPaidDebt;
+  const debtProgress = totalDebt > 0 ? (totalPaidDebt / totalDebt) * 100 : 0;
+  
+  const balanceProgress = totalIncome > 0 ? (balance / totalIncome) * 100 : 0;
 
   const overviewData = [
     { title: "Total Income", value: totalIncome, currency: true, icon: ArrowUpCircle, iconClass: "text-green-500" },
     { title: "Total Expenses", value: totalExpenses, currency: true, icon: ArrowDownCircle, iconClass: "text-red-500" },
-    { title: "Balance", value: balance, currency: true, icon: Wallet, iconClass: "text-blue-500" },
-    { title: "Remaining Debt", value: remainingDebt, currency: true, icon: CreditCard, iconClass: "text-orange-500" },
+    { title: "Balance", value: balance, currency: true, icon: Wallet, iconClass: "text-blue-500", progress: balanceProgress > 0 ? balanceProgress : 0, progressLabel: balance < 0 ? `Deficit of ₹${Math.abs(balance).toLocaleString()}` : `${Math.round(balanceProgress)}% of income saved`},
+    { title: "Remaining Debt", value: remainingDebt, currency: true, icon: CreditCard, iconClass: "text-orange-500", progress: debtProgress, progressLabel: `₹${totalPaidDebt.toLocaleString()} paid of ₹${totalDebt.toLocaleString()}` },
     { title: "Total Saved", value: totalSaved, currency: true, icon: Target, iconClass: "text-purple-500" },
   ];
 
@@ -156,6 +164,14 @@ const DashboardOverview = ({ date }: { date?: DateRange }) => {
               <p className="text-2xl font-bold">
                 {item.currency ? `₹${item.value.toLocaleString()}` : item.value}
               </p>
+              {item.progress !== undefined && (
+                <div className="mt-2 space-y-1">
+                  <Progress value={item.progress} className="h-2" />
+                  {item.progressLabel && (
+                    <p className="text-xs text-muted-foreground">{item.progressLabel}</p>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
