@@ -5,11 +5,14 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
+  CardFooter,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 type Income = {
   id: string;
@@ -55,7 +58,7 @@ export function RecentTransactions({ incomes, expenses }: RecentTransactionsProp
 
     return combined
       .sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime())
-      .slice(0, 15);
+      .slice(0, 10);
   }, [incomes, expenses]);
 
   if (transactions.length === 0) {
@@ -112,6 +115,11 @@ export function RecentTransactions({ incomes, expenses }: RecentTransactionsProp
           ))}
         </div>
       </CardContent>
+      <CardFooter className="pt-4">
+        <Button asChild className="w-full" variant="outline">
+          <Link to="/reports">View All Transactions</Link>
+        </Button>
+      </CardFooter>
     </Card>
   );
 }
