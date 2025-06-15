@@ -8,9 +8,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
 
 export function AppLayout() {
   const [session, setSession] = useState<Session | null>(null);
@@ -53,21 +50,7 @@ export function AppLayout() {
         <AppSidebar />
         <div className="flex flex-col">
           <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="shrink-0 md:hidden"
-                >
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle navigation menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="flex flex-col p-0">
-                <AppSidebar />
-              </SheetContent>
-            </Sheet>
+            <SidebarTrigger className="shrink-0 md:hidden" />
             <div className="w-full flex-1">
               {/* Can add search or other header items here */}
             </div>

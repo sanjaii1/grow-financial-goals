@@ -63,7 +63,7 @@ const NavButton = ({ to, children, className }: { to: string, children: React.Re
 
 export function AppSidebar() {
   return (
-    <Sidebar className="hidden border-r bg-muted/40 md:block">
+    <Sidebar className="border-r bg-muted/40">
       <SidebarHeader>
         <h2 className="text-lg font-semibold">Finance Tracker</h2>
       </SidebarHeader>
