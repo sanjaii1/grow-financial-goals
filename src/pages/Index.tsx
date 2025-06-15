@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
@@ -112,37 +111,6 @@ const Index = () => {
       </div>
 
       <DashboardOverview />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="p-6 bg-card rounded-lg border animate-scale-in" style={{ animationDelay: '500ms' }}>
-          <h2 className="text-xl font-semibold mb-2">Incomes</h2>
-          <p className="text-muted-foreground mb-4">Track your sources of income.</p>
-          <Button asChild>
-            <Link to="/incomes">Go to Incomes</Link>
-          </Button>
-        </div>
-        <div className="p-6 bg-card rounded-lg border animate-scale-in" style={{ animationDelay: '600ms' }}>
-          <h2 className="text-xl font-semibold mb-2">Expenses</h2>
-          <p className="text-muted-foreground mb-4">Track and categorize your spending.</p>
-          <Button asChild>
-            <Link to="/expenses">Go to Expenses</Link>
-          </Button>
-        </div>
-        <div className="p-6 bg-card rounded-lg border animate-scale-in" style={{ animationDelay: '700ms' }}>
-          <h2 className="text-xl font-semibold mb-2">Debts</h2>
-          <p className="text-muted-foreground mb-4">Manage your outstanding debts.</p>
-          <Button asChild>
-            <Link to="/debts">Go to Debts</Link>
-          </Button>
-        </div>
-        <div className="p-6 bg-card rounded-lg border animate-scale-in" style={{ animationDelay: '800ms' }}>
-          <h2 className="text-xl font-semibold mb-2">Savings Goals</h2>
-          <p className="text-muted-foreground mb-4">Set and track your savings goals.</p>
-          <Button asChild>
-            <Link to="/savings">Go to Savings</Link>
-          </Button>
-        </div>
-      </div>
     </div>
   );
 };
