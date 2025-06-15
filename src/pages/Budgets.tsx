@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
-import { PlusCircle, Target, Edit, Trash2, MoreHorizontal, Download } from "lucide-react";
+import { PlusCircle, Target, Edit, Trash2, MoreHorizontal } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useDownloadReport } from "@/hooks/useDownloadReport";
 
 type Budget = Database["public"]["Tables"]["budgets"]["Row"];
 type Expense = Database["public"]["Tables"]["expenses"]["Row"];
@@ -43,8 +42,6 @@ const Budgets = () => {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
     const [budgetToDelete, setBudgetToDelete] = useState<string | null>(null);
-    const budgetRef = useRef<HTMLDivElement>(null);
-    const { handleDownloadPdf, handleDownloadJson } = useDownloadReport({ reportRef: budgetRef, fileName: 'budgets' });
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -114,7 +111,7 @@ const Budgets = () => {
 
 
     return (
-        <div ref={budgetRef} className="w-full max-w-6xl mx-auto p-4 md:p-6">
+        <div className="w-full max-w-6xl mx-auto p-4 md:p-6">
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -128,22 +125,6 @@ const Budgets = () => {
                     <Button onClick={handleAddBudget}>
                         <PlusCircle className="mr-2 h-4 w-4" /> Add Budget
                     </Button>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline">
-                                <Download className="mr-2 h-4 w-4" />
-                                Download
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={handleDownloadPdf}>
-                                Download as PDF
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDownloadJson(budgetsWithSpending)}>
-                                Download as JSON
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
                 </div>
             </div>
             <Card>
