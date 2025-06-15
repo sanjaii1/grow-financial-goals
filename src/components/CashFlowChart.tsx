@@ -1,3 +1,4 @@
+
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ReferenceLine, Legend, Tooltip } from "recharts"
 import {
   Card,
@@ -72,7 +73,7 @@ export function CashFlowChart({ incomes, expenses }: CashFlowChartProps) {
       if (!monthlyData[month]) {
         monthlyData[month] = { income: 0, expense: 0 };
       }
-      monthlyData[month].expense -= expense.amount;
+      monthlyData[month].expense += expense.amount;
     });
 
     const sortedMonths = Object.keys(monthlyData).sort((a, b) => {
@@ -119,7 +120,7 @@ export function CashFlowChart({ incomes, expenses }: CashFlowChartProps) {
               axisLine={false}
             />
             <YAxis
-              tickFormatter={(value) => `₹${new Intl.NumberFormat('en-IN', { notation: 'compact', compactDisplay: 'short' }).format(Math.abs(Number(value)))}`}
+              tickFormatter={(value) => `₹${new Intl.NumberFormat('en-IN', { notation: 'compact', compactDisplay: 'short' }).format(Number(value))}`}
               axisLine={false}
               tickLine={false}
               width={60}
@@ -127,7 +128,7 @@ export function CashFlowChart({ incomes, expenses }: CashFlowChartProps) {
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent
-                  formatter={(value) => `₹${Math.abs(Number(value)).toLocaleString()}`}
+                  formatter={(value) => `₹${Number(value).toLocaleString()}`}
                   indicator="dot"
               />}
             />
