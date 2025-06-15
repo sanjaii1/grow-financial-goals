@@ -49,6 +49,7 @@ import {
 } from "@/components/ui/form";
 
 const passwordFormSchema = z.object({
+  currentPassword: z.string().min(1, { message: "Please enter your current password." }),
   password: z.string().min(8, { message: "Password must be at least 8 characters." }),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -76,6 +77,7 @@ const Settings = () => {
   const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
     resolver: zodResolver(passwordFormSchema),
     defaultValues: {
+      currentPassword: "",
       password: "",
       confirmPassword: "",
     },
@@ -128,6 +130,34 @@ const Settings = () => {
   };
   
   const handlePasswordUpdate = async (values: z.infer<typeof passwordFormSchema>) => {
+    if (!session?.user?.email) {
+      toast({ title: "Error", description: "Could not find user email.", variant: "destructive" });
+      return;
+    }
+
+    // A common way to verify a user's password is to attempt to sign in.
+    // If successful, the password is correct. This will also refresh the session.
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: session.user.email,
+        password: values.currentPassword,
+    });
+
+    if (signInError) {
+        if (signInError.message === 'Invalid login credentials') {
+            passwordForm.setError('currentPassword', {
+                type: 'manual',
+                message: 'Incorrect current password. Please try again.',
+            });
+        } else {
+            toast({
+                title: "Authentication failed",
+                description: signInError.message,
+                variant: "destructive",
+            });
+        }
+        return;
+    }
+
     const { error } = await supabase.auth.updateUser({
       password: values.password,
     });
@@ -203,6 +233,19 @@ const Settings = () => {
                   </DialogHeader>
                   <Form {...passwordForm}>
                     <form onSubmit={passwordForm.handleSubmit(handlePasswordUpdate)} className="space-y-4 pt-4">
+                      <FormField
+                        control={passwordForm.control}
+                        name="currentPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Current Password</FormLabel>
+                            <FormControl>
+                              <Input placeholder="••••••••" type="password" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       <FormField
                         control={passwordForm.control}
                         name="password"
