@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useMemo, useState } from "react";
@@ -182,6 +181,7 @@ const Index = () => {
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
   });
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handlePeriodChange = (selectedPeriod: string) => {
     setPeriod(selectedPeriod);
@@ -197,6 +197,7 @@ const Index = () => {
     } else if (selectedPeriod === "all_time") {
       setDate(undefined);
     }
+    setIsMenuOpen(false);
   };
 
   const periodLabels: { [key: string]: string } = {
@@ -213,7 +214,7 @@ const Index = () => {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <div className="flex items-center gap-4">
-          <DropdownMenu>
+          <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="w-[240px] justify-start text-left font-normal">
                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -246,6 +247,9 @@ const Index = () => {
                       onSelect={(range) => {
                         setDate(range)
                         setPeriod("custom")
+                        if (range?.from && range.to) {
+                          setIsMenuOpen(false);
+                        }
                       }}
                       numberOfMonths={2}
                     />
