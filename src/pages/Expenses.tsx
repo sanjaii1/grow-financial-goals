@@ -241,21 +241,19 @@ const Expenses = () => {
   return (
     <>
       <div className="w-full">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <span role="img" aria-label="money with wings">💸</span> Expenses
+            </h1>
+            <p className="text-muted-foreground">Manage your expenses and track your spending.</p>
+          </div>
+          <Button onClick={handleAddClick}>
+            <PlusCircle className="mr-2 h-4 w-4" /> Add Expense
+          </Button>
+        </div>
         <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle className="text-3xl font-bold flex items-center gap-2">
-                  <span role="img" aria-label="money with wings">💸</span> Expenses
-                </CardTitle>
-                <CardDescription>Manage your expenses and track your spending.</CardDescription>
-              </div>
-              <Button onClick={handleAddClick}>
-                <PlusCircle className="mr-2 h-4 w-4" /> Add Expense
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <div className="flex justify-between items-center mb-4">
               <div className="relative w-full max-w-sm">
                 <Input
