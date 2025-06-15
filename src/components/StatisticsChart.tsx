@@ -21,7 +21,7 @@ const CustomLegend = ({ payload }: any) => {
     return null;
   }
   return (
-    <div className="flex flex-col gap-4 w-full justify-center pl-4 sm:pl-8">
+    <div className="flex flex-col items-center md:items-start gap-4 w-full justify-center md:pl-8">
       {payload.map((entry: any, index: number) => (
         <div key={`item-${index}`} className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
@@ -60,8 +60,8 @@ export function StatisticsChart({ expenses }: StatisticsChartProps) {
       </CardHeader>
       <CardContent>
         {chartData.length > 0 ? (
-          <div className="w-full h-[220px] grid grid-cols-2 gap-4 items-center">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 items-center md:h-[220px]">
+            <ResponsiveContainer width="100%" height={220} className="md:h-full">
               <PieChart>
                 <Pie
                   data={chartData}
