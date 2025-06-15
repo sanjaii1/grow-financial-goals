@@ -16,6 +16,7 @@ import {
 import { useMemo, useState } from "react"
 import { format, parseISO } from "date-fns"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 type ChartData = {
   month: string;
@@ -101,6 +102,7 @@ const processDailyData = (incomes: Income[], expenses: Expense[], days: number):
 
 export function CashFlowChart({ incomes, expenses }: CashFlowChartProps) {
   const [view, setView] = useState<'yearly' | 'monthly' | 'daily'>('yearly');
+  const isMobile = useIsMobile();
 
   const chartData: ChartData[] = useMemo(() => {
     if (view === 'yearly') {
@@ -157,13 +159,13 @@ export function CashFlowChart({ incomes, expenses }: CashFlowChartProps) {
 
   const ChartHeader = () => (
     <CardHeader>
-      <div className="flex justify-between items-start">
+      <div className={`flex ${isMobile ? 'flex-col gap-4' : 'justify-between items-start'}`}>
         <div>
           <CardTitle>Cash Flow</CardTitle>
           <CardDescription>{chartDescription[view]}</CardDescription>
         </div>
         <Tabs defaultValue={view} onValueChange={(v) => setView(v as 'yearly' | 'monthly' | 'daily')}>
-          <TabsList>
+          <TabsList className={isMobile ? "grid w-full grid-cols-3" : ""}>
             <TabsTrigger value="yearly">Yearly</TabsTrigger>
             <TabsTrigger value="monthly">Monthly</TabsTrigger>
             <TabsTrigger value="daily">Daily</TabsTrigger>
@@ -193,20 +195,26 @@ export function CashFlowChart({ incomes, expenses }: CashFlowChartProps) {
       <ChartHeader />
       <CardContent>
         <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
-          <BarChart accessibilityLayer data={chartData} margin={{ top: 20, right: 20, left: 20, bottom: 5 }}>
+          <BarChart 
+            accessibilityLayer 
+            data={chartData} 
+            margin={isMobile ? { top: 10, right: 10, left: -10, bottom: 0 } : { top: 20, right: 20, left: 20, bottom: 5 }}
+          >
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="month"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
-              interval={view === 'monthly' ? 4 : view === 'daily' ? 0 : 'preserveStartEnd'}
+              interval={view === 'monthly' ? (isMobile ? 6 : 4) : view === 'daily' ? (isMobile ? 1 : 0) : 'preserveStartEnd'}
+              fontSize={isMobile ? 10 : 12}
             />
             <YAxis
               tickFormatter={(value) => `₹${new Intl.NumberFormat('en-IN', { notation: 'compact', compactDisplay: 'short' }).format(Number(value))}`}
               axisLine={false}
               tickLine={false}
-              width={60}
+              width={isMobile ? 45 : 60}
+              fontSize={isMobile ? 10 : 12}
             />
             <ChartTooltip
               cursor={false}
@@ -215,7 +223,7 @@ export function CashFlowChart({ incomes, expenses }: CashFlowChartProps) {
                   indicator="dot"
               />}
             />
-            <Legend />
+            <Legend wrapperStyle={isMobile ? { paddingTop: '20px' } : {}} />
             <ReferenceLine y={0} stroke="hsl(var(--border))" />
             <Bar dataKey="income" fill="var(--color-income)" radius={[4, 4, 0, 0]} />
             <Bar dataKey="expense" fill="var(--color-expense)" radius={[4, 4, 0, 0]} />
