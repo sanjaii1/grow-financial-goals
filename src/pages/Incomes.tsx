@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -20,11 +21,23 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Edit, Trash2, PlusCircle } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, PlusCircle, Filter, Calendar as CalendarIcon, Search } from "lucide-react";
 import { IncomeDialog } from "@/components/incomes/IncomeDialog";
 import { DeleteIncomeAlert } from "@/components/incomes/DeleteIncomeAlert";
 import { Skeleton } from "@/components/ui/skeleton";
 import * as z from "zod";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+
 
 export type Income = {
   id: string;
@@ -49,6 +62,9 @@ const Incomes = () => {
 
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
+  const [showFilters, setShowFilters] = useState(true);
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
 
   const [isAddEditDialogOpen, setAddEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -141,7 +157,14 @@ const Incomes = () => {
   const filteredIncomes = incomes?.filter(income => {
       const searchMatch = !search || income.source.toLowerCase().includes(search.toLowerCase());
       const categoryMatch = category === 'All' || income.category === category;
-      return searchMatch && categoryMatch;
+      
+      if (!income.income_date) return false;
+      const incomeDate = new Date(income.income_date);
+      
+      const startDateMatch = !startDate || incomeDate >= startDate;
+      const endDateMatch = !endDate || incomeDate <= endDate;
+      
+      return searchMatch && categoryMatch && startDateMatch && endDateMatch;
   });
 
   const incomeCategories = ["All", ...new Set(incomes?.map(i => i.category).filter(Boolean) as string[])];
@@ -163,26 +186,101 @@ const Incomes = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4 mb-4">
-            <Input 
-              placeholder="Search by source..." 
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="max-w-sm"
-            />
-            <div className="flex items-center gap-2 overflow-x-auto pb-2">
-              {incomeCategories.map(cat => (
-                <Button 
-                  key={cat} 
-                  variant={category === cat ? "default" : "outline"}
-                  onClick={() => setCategory(cat)}
-                  className="shrink-0"
-                >
-                  {cat}
-                </Button>
-              ))}
+          <div className="flex justify-between items-center mb-4">
+            <div className="relative w-full max-w-sm">
+              <Input
+                placeholder="Search income..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10"
+              />
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                <Search className="h-5 w-5 text-muted-foreground" />
+              </span>
             </div>
+            <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
+                <Filter className="mr-2 h-4 w-4" />
+                {showFilters ? "Hide" : "Show"} Filters
+            </Button>
           </div>
+          
+          {showFilters && (
+            <Card className="mb-4 bg-muted/50">
+                <CardContent className="pt-6">
+                    <div className="grid sm:grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label className="text-sm font-medium mb-1 block">Category</label>
+                            <Select value={category} onValueChange={setCategory}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="All Categories" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {incomeCategories.map(cat => (
+                                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div>
+                            <label className="text-sm font-medium mb-1 block">Start Date</label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant={"outline"}
+                                        className={cn(
+                                            "w-full justify-start text-left font-normal bg-background",
+                                            !startDate && "text-muted-foreground"
+                                        )}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                        mode="single"
+                                        selected={startDate}
+                                        onSelect={setStartDate}
+                                        initialFocus
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+
+                        <div>
+                            <label className="text-sm font-medium mb-1 block">End Date</label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant={"outline"}
+                                        className={cn(
+                                            "w-full justify-start text-left font-normal bg-background",
+                                            !endDate && "text-muted-foreground"
+                                        )}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                        mode="single"
+                                        selected={endDate}
+                                        onSelect={setEndDate}
+                                        disabled={(date) =>
+                                            startDate ? date < startDate : false
+                                        }
+                                        initialFocus
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+          )}
+
           <div className="rounded-md border">
             <Table>
               <TableHeader>
