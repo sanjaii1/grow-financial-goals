@@ -134,7 +134,7 @@ export function CashFlowChart({ incomes, expenses }: CashFlowChartProps) {
             <Legend />
             <ReferenceLine y={0} stroke="hsl(var(--border))" />
             <Bar dataKey="income" fill="var(--color-income)" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="expense" fill="var(--color-expense)" radius={[0, 0, 4, 4]} />
+            <Bar dataKey="expense" fill="var(--color-expense)" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ChartContainer>
       </CardContent>
