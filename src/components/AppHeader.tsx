@@ -1,6 +1,7 @@
 
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { TrendingUp } from "lucide-react";
+import { UserNav } from "./UserNav";
 
 export function AppHeader() {
   const { state, isMobile, openMobile } = useSidebar();
@@ -17,6 +18,7 @@ export function AppHeader() {
           </div>
         )}
       </div>
+      <UserNav />
     </header>
   );
 }
