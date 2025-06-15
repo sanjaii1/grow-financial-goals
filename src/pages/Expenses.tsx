@@ -1,11 +1,12 @@
+
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Session, User } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
 import {
@@ -25,8 +26,23 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { PlusCircle, Edit, Trash2, Filter, Search } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { PlusCircle, Edit, Trash2, MoreHorizontal } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Expense = Database["public"]["Tables"]["expenses"]["Row"];
 
@@ -68,6 +84,7 @@ const Expenses = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("All");
 
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
@@ -189,39 +206,122 @@ const Expenses = () => {
     );
   }
   
-  const filteredExpenses = expenses?.filter(expense => 
-    expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    expense.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredExpenses = expenses?.filter(expense => {
+    const searchMatch = !searchTerm || 
+      expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      expense.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const categoryMatch = categoryFilter === 'All' || expense.category === categoryFilter;
+    return searchMatch && categoryMatch;
+  });
 
-  const getCategoryInitial = (category: string) => category?.[0]?.toUpperCase() || 'E';
-  
-  const categoryColors: { [key: string]: string } = {
-      'Food': 'bg-yellow-200 text-yellow-800',
-      'Dining': 'bg-yellow-200 text-yellow-800',
-      'Utilities': 'bg-purple-200 text-purple-800',
-      'Transportation': 'bg-green-200 text-green-800',
-      'Other': 'bg-gray-200 text-gray-800',
-  };
-
-  const getCategoryColor = (category: string) => {
-      for (const key in categoryColors) {
-          if (category.toLowerCase().includes(key.toLowerCase())) {
-              return categoryColors[key];
-          }
-      }
-      return categoryColors['Other'];
-  };
+  const expenseCategories = ["All", ...new Set(expenses?.map(e => e.category).filter(Boolean) as string[])];
 
   return (
     <>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Expenses</h1>
-        <div className="flex items-center gap-4">
-          <Button onClick={handleAddClick}>
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Expense
-          </Button>
-        </div>
+      <div className="w-full">
+        <Card className="bg-slate-900 border-slate-800 text-gray-300">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle className="text-3xl font-bold flex items-center gap-2">
+                  <span role="img" aria-label="money with wings">💸</span> Expenses
+                </CardTitle>
+                <CardDescription className="text-gray-400">Manage your expenses and track your spending.</CardDescription>
+              </div>
+              <Button onClick={handleAddClick} className="bg-blue-600 hover:bg-blue-700 text-white">
+                <PlusCircle className="mr-2 h-4 w-4" /> Add Expense
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
+                <Input 
+                    placeholder="Search by description or category..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="max-w-sm bg-slate-800 border-slate-700 placeholder:text-gray-500 focus:ring-blue-500 focus:ring-offset-slate-900"
+                />
+              <div className="flex items-center gap-2 overflow-x-auto pb-2">
+                {expenseCategories.map(cat => (
+                  <Button 
+                    key={cat} 
+                    variant="outline"
+                    onClick={() => setCategoryFilter(cat)}
+                    className={`shrink-0 ${
+                      categoryFilter === cat 
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white border-blue-600' 
+                      : 'border-slate-700 hover:bg-slate-800 text-gray-300'
+                    }`}
+                  >
+                    {cat}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-md border border-slate-700">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b-slate-700 hover:bg-slate-900">
+                    <TableHead className="text-gray-400">Description</TableHead>
+                    <TableHead className="text-right text-gray-400">Amount</TableHead>
+                    <TableHead className="hidden md:table-cell text-gray-400">Category</TableHead>
+                    <TableHead className="hidden md:table-cell text-right text-gray-400">Date</TableHead>
+                    <TableHead><span className="sr-only">Actions</span></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i} className="border-slate-800">
+                        <TableCell><Skeleton className="h-4 w-32 bg-slate-700" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-24 ml-auto bg-slate-700" /></TableCell>
+                        <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-20 bg-slate-700" /></TableCell>
+                        <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24 ml-auto bg-slate-700" /></TableCell>
+                        <TableCell><Skeleton className="h-8 w-8 ml-auto rounded-full bg-slate-700" /></TableCell>
+                      </TableRow>
+                    ))
+                  ) : filteredExpenses && filteredExpenses.length > 0 ? (
+                    filteredExpenses.map((expense) => (
+                      <TableRow key={expense.id} className="border-slate-800 hover:bg-slate-800/50">
+                        <TableCell className="font-medium">{expense.description}</TableCell>
+                        <TableCell className="text-right text-red-500 font-semibold">-₹{expense.amount.toLocaleString()}</TableCell>
+                        <TableCell className="hidden md:table-cell">{expense.category}</TableCell>
+                        <TableCell className="hidden md:table-cell text-right">{new Date(expense.expense_date).toLocaleDateString()}</TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-slate-700 focus:bg-slate-700 data-[state=open]:bg-slate-700">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-slate-900 border-slate-700 text-gray-300">
+                              <DropdownMenuLabel className="border-b border-slate-700">Actions</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => handleEditClick(expense)} className="focus:bg-slate-800 focus:text-gray-200">
+                                <Edit className="mr-2 h-4 w-4" />
+                                <span>Edit</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-red-500 focus:text-red-500 focus:bg-slate-800" onClick={() => handleDeleteClick(expense)}>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                <span>Delete</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow className="border-slate-800">
+                      <TableCell colSpan={5} className="h-24 text-center text-gray-400">
+                        No expenses found.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={(isOpen) => {
@@ -234,10 +334,10 @@ const Expenses = () => {
           setExpenseDate(new Date().toISOString().split("T")[0]);
         }
       }}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] bg-slate-900 border-slate-700 text-gray-300">
           <DialogHeader>
             <DialogTitle>{selectedExpense ? 'Edit' : 'Add New'} Expense</DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-gray-400">
               Enter the details of your expense below. Click save when you're done.
             </DialogDescription>
           </DialogHeader>
@@ -247,6 +347,7 @@ const Expenses = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
+              className="bg-slate-800 border-slate-700 placeholder:text-gray-500"
             />
             <Input
               type="number"
@@ -254,20 +355,23 @@ const Expenses = () => {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               required
+              className="bg-slate-800 border-slate-700 placeholder:text-gray-500"
             />
             <Input
               placeholder="Category (e.g. Food)"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               required
+              className="bg-slate-800 border-slate-700 placeholder:text-gray-500"
             />
             <Input
               type="date"
               value={expenseDate}
               onChange={(e) => setExpenseDate(e.target.value)}
               required
+              className="bg-slate-800 border-slate-700"
             />
-            <Button type="submit" disabled={addOrUpdateMutation.isPending}>
+            <Button type="submit" disabled={addOrUpdateMutation.isPending} className="bg-blue-600 hover:bg-blue-700 text-white">
               {addOrUpdateMutation.isPending ? "Saving..." : "Save Changes"}
             </Button>
           </form>
@@ -275,77 +379,21 @@ const Expenses = () => {
       </Dialog>
       
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-slate-900 border-slate-700 text-gray-300">
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-gray-400">
               This action cannot be undone. This will permanently delete your expense record.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="border-slate-700 hover:bg-slate-800 text-gray-300">Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteConfirm} disabled={deleteMutation.isPending}>
               {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <Card>
-        <CardHeader>
-           <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-              <div className="relative w-full md:max-w-sm">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-                  <Input 
-                      placeholder="Search expenses..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                  />
-              </div>
-              <Button variant="outline">
-                  <Filter className="mr-2 h-4 w-4" /> Show Filters
-              </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="text-center py-12">Loading...</div>
-          ) : filteredExpenses && filteredExpenses.length > 0 ? (
-            <div className="space-y-1">
-              {filteredExpenses.map((expense) => (
-                <div key={expense.id} className="flex items-center p-3 rounded-lg hover:bg-gray-100 transition-colors">
-                  <Avatar className="h-10 w-10 mr-4">
-                    <AvatarFallback className={`${getCategoryColor(expense.category)} font-semibold`}>
-                      {getCategoryInitial(expense.category)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-grow">
-                    <p className="font-semibold">{expense.description}</p>
-                    <p className="text-sm text-gray-500">
-                      {expense.category} &bull; {new Date(expense.expense_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-semibold text-red-600">-₹{expense.amount.toLocaleString()}</p>
-                    <Button variant="ghost" size="icon" onClick={() => handleEditClick(expense)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700" onClick={() => handleDeleteClick(expense)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <h3 className="text-lg font-semibold">No expenses found</h3>
-              <p className="text-gray-500">Try adding a new expense to get started.</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </>
   );
 };
