@@ -25,11 +25,6 @@ const menuItems = [
     icon: LayoutDashboard,
   },
   {
-    href: "/debts",
-    title: "Debts",
-    icon: CreditCard,
-  },
-  {
     href: "/incomes",
     title: "Incomes",
     icon: Banknote,
@@ -38,6 +33,11 @@ const menuItems = [
     href: "/expenses",
     title: "Expenses",
     icon: ShoppingCart,
+  },
+  {
+    href: "/debts",
+    title: "Debts",
+    icon: CreditCard,
   },
   {
     href: "/savings",

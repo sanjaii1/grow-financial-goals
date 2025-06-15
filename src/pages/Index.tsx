@@ -114,13 +114,6 @@ const Index = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="p-6 bg-card rounded-lg border">
-          <h2 className="text-xl font-semibold mb-2">Debts</h2>
-          <p className="text-muted-foreground mb-4">Manage your outstanding debts.</p>
-          <Button asChild>
-            <Link to="/debts">Go to Debts</Link>
-          </Button>
-        </div>
-        <div className="p-6 bg-card rounded-lg border">
           <h2 className="text-xl font-semibold mb-2">Incomes</h2>
           <p className="text-muted-foreground mb-4">Track your sources of income.</p>
           <Button asChild>
@@ -132,6 +125,13 @@ const Index = () => {
           <p className="text-muted-foreground mb-4">Track and categorize your spending.</p>
           <Button asChild>
             <Link to="/expenses">Go to Expenses</Link>
+          </Button>
+        </div>
+        <div className="p-6 bg-card rounded-lg border">
+          <h2 className="text-xl font-semibold mb-2">Debts</h2>
+          <p className="text-muted-foreground mb-4">Manage your outstanding debts.</p>
+          <Button asChild>
+            <Link to="/debts">Go to Debts</Link>
           </Button>
         </div>
         <div className="p-6 bg-card rounded-lg border">
