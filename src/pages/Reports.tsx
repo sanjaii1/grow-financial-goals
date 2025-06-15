@@ -1,4 +1,3 @@
-
 import React, { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ColoredProgress } from "@/components/ColoredProgress";
 import { ChartBar, TrendingUp, TrendingDown, CalendarDays } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CashFlowChart } from "@/components/CashFlowChart";
 
 type Expense = Database["public"]["Tables"]["expenses"]["Row"];
 type Income = Database["public"]["Tables"]["incomes"]["Row"];
@@ -191,9 +191,11 @@ const Reports = () => {
                         </TabsContent>
                         
                         <TabsContent value="comparison" className="mt-6">
-                           <div className="flex items-center justify-center h-48 border-2 border-dashed rounded-lg">
-                                <p className="text-muted-foreground">Monthly comparison is coming soon.</p>
-                            </div>
+                           {isLoading ? (
+                                <Skeleton className="h-[450px] w-full" />
+                            ) : (
+                                <CashFlowChart incomes={incomes || []} expenses={expenses || []} />
+                            )}
                         </TabsContent>
                     </Tabs>
                 </CardContent>
