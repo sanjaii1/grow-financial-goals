@@ -1,4 +1,3 @@
-
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -115,7 +114,7 @@ const Budgets = () => {
 
 
     return (
-        <div ref={budgetRef} className="w-full max-w-6xl mx-auto p-4 md:p-6 bg-background">
+        <div ref={budgetRef} className="w-full max-w-6xl mx-auto p-4 md:p-6">
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h1 className="text-3xl font-bold flex items-center gap-2">
