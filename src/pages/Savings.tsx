@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useForm } from "react-hook-form";
@@ -361,7 +362,7 @@ const Savings = () => {
               </CollapsibleContent>
             </Collapsible>
           </div>
-          <div className="rounded-md border mt-4">
+          <div className="rounded-md border mt-4 overflow-auto">
             <Table>
               <TableHeader>
                 <TableRow>
