@@ -221,9 +221,6 @@ const Expenses = () => {
           <Button onClick={handleAddClick}>
             <PlusCircle className="mr-2 h-4 w-4" /> Add Expense
           </Button>
-          <Button asChild variant="outline">
-            <Link to="/">Dashboard</Link>
-          </Button>
         </div>
       </div>
 
