@@ -12,15 +12,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useTheme } from "next-themes";
-import { KeyRound, Sun, Moon, Download, Trash2, User as UserIcon } from "lucide-react";
+import { KeyRound, Sun, Moon, Trash2, User as UserIcon } from "lucide-react";
 import { Session } from "@supabase/supabase-js";
 import {
   AlertDialog,
@@ -33,10 +26,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useNavigate } from "react-router-dom";
 
 const Settings = () => {
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -96,7 +91,22 @@ const Settings = () => {
   };
   
   const handleDeleteAccount = async () => {
-    toast({ title: "Account Deletion", description: "This feature is not yet implemented.", variant: "destructive" });
+    if (!session) {
+      toast({ title: "Error", description: "You must be logged in to delete your account.", variant: "destructive" });
+      return;
+    }
+
+    const { error } = await supabase.functions.invoke('delete-user', {
+      method: 'POST',
+    });
+
+    if (error) {
+      toast({ title: "Account deletion failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Account deleted successfully", description: "You will be logged out and redirected." });
+      await supabase.auth.signOut();
+      navigate('/auth', { replace: true });
+    }
   };
 
   if (loading) {
@@ -152,19 +162,6 @@ const Settings = () => {
                   <Input id="email" value={user.email || ''} disabled />
                 </div>
               </div>
-              <div className="space-y-2">
-                <label htmlFor="currency" className="text-sm font-medium">Preferred Currency</label>
-                <Select defaultValue="usd">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a currency" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="usd">$ USD - US Dollar</SelectItem>
-                    <SelectItem value="eur">€ EUR - Euro</SelectItem>
-                    <SelectItem value="gbp">£ GBP - British Pound</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </CardContent>
             <CardFooter>
               <Button onClick={handleProfileUpdate} disabled={!isProfileChanged}>
@@ -195,18 +192,6 @@ const Settings = () => {
             </CardContent>
           </Card>
           
-          <Card>
-            <CardHeader>
-                <CardTitle>Data Management</CardTitle>
-                <CardDescription>Download your financial data in different formats.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-4">
-                <Button variant="outline"><Download className="mr-2"/>Export CSV</Button>
-                <Button variant="outline"><Download className="mr-2"/>Export JSON</Button>
-                <Button variant="outline"><Download className="mr-2"/>Export PDF</Button>
-            </CardContent>
-          </Card>
-
           <Card className="border-destructive/50">
             <CardHeader>
               <CardTitle className="text-destructive">Danger Zone</CardTitle>
