@@ -89,7 +89,7 @@ export function AppSidebar() {
             </NavButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        <div className="flex justify-center p-2">
+        <div className="px-3 py-2">
             <ThemeToggle />
         </div>
       </SidebarFooter>
