@@ -13,9 +13,19 @@ serve(async (req) => {
   }
 
   try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    if (!supabaseUrl) {
+      throw new Error('SUPABASE_URL is not set in Edge Function secrets.')
+    }
+
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    if (!serviceRoleKey) {
+      throw new Error('SUPABASE_SERVICE_ROLE_KEY is not set in Edge Function secrets.')
+    }
+
     const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      supabaseUrl,
+      serviceRoleKey,
       {
         auth: {
           autoRefreshToken: false,
@@ -25,8 +35,18 @@ serve(async (req) => {
     )
 
     // Get user from Authorization header.
-    const authHeader = req.headers.get("Authorization")!
-    const { data: { user } } = await supabaseAdmin.auth.getUser(authHeader.replace("Bearer ", ""));
+    const authHeader = req.headers.get("Authorization")
+    if (!authHeader) {
+        throw new Error('Missing Authorization header.')
+    }
+    const { data: { user }, error: getUserError } = await supabaseAdmin.auth.getUser(authHeader.replace("Bearer ", ""));
+
+    if (getUserError) {
+        return new Response(JSON.stringify({ error: `Authentication error: ${getUserError.message}` }), {
+            status: 401,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+    }
 
     if (!user) {
       return new Response(JSON.stringify({ error: 'User not found' }), {
@@ -34,11 +54,16 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+    
+    console.log(`Attempting to delete user ${user.id}`);
 
-    const { error } = await supabaseAdmin.auth.admin.deleteUser(user.id);
-    if (error) {
-      throw error;
+    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id);
+    if (deleteError) {
+      console.error(`Error deleting user ${user.id}:`, deleteError.message);
+      throw deleteError;
     }
+
+    console.log(`Successfully deleted user ${user.id}`);
 
     return new Response(JSON.stringify({ message: 'User deleted successfully' }), {
       status: 200,
@@ -46,8 +71,9 @@ serve(async (req) => {
     });
 
   } catch (error) {
+    console.error('An unexpected error occurred:', error.message);
     return new Response(JSON.stringify({ error: error.message }), {
-      status: 400,
+      status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
