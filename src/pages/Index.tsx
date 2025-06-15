@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { IncomeExpenseChart } from "@/components/IncomeExpenseChart";
 import { cn } from "@/lib/utils";
 import { ArrowDownCircle, ArrowUpCircle, Wallet, Target, CreditCard } from "lucide-react";
+import { SpendingByCategory } from "@/components/SpendingByCategory";
+import { SavingsPlan } from "@/components/SavingsPlan";
 
 const fetchDashboardData = async () => {
   const { data: { user } } = await supabase.auth.getUser();
@@ -52,6 +54,37 @@ const DashboardOverview = () => {
             </Card>
           ))}
         </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-1/2 mb-2" />
+              <Skeleton className="h-4 w-1/3" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-[350px] w-full rounded-full" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-1/2 mb-2" />
+              <Skeleton className="h-4 w-1/3" />
+            </CardHeader>
+            <CardContent className="space-y-6 pt-6">
+               <div>
+                  <Skeleton className="h-4 w-3/4 mb-2" />
+                  <Skeleton className="h-2 w-full" />
+               </div>
+               <div>
+                  <Skeleton className="h-4 w-2/3 mb-2" />
+                  <Skeleton className="h-2 w-full" />
+               </div>
+               <div>
+                  <Skeleton className="h-4 w-1/2 mb-2" />
+                  <Skeleton className="h-2 w-full" />
+               </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -87,6 +120,10 @@ const DashboardOverview = () => {
             </CardContent>
           </Card>
         ))}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+        <SpendingByCategory expenses={data?.expenses || []} />
+        <SavingsPlan savingsGoals={data?.savingsGoals || []} />
       </div>
     </div>
   );
