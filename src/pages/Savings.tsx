@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useForm } from "react-hook-form";
@@ -73,7 +74,8 @@ const Savings = () => {
       if (!user) throw new Error("User not logged in");
       
       const goalData = {
-        ...newGoal,
+        name: newGoal.name,
+        target_amount: newGoal.target_amount,
         user_id: user.id,
         target_date: newGoal.target_date || null,
       };
