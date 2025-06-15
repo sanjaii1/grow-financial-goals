@@ -106,7 +106,9 @@ const Debts = () => {
       if (!user) throw new Error("User not logged in");
       
       const debtData = {
-        ...newDebt,
+        name: newDebt.name,
+        amount: newDebt.amount,
+        due_date: newDebt.due_date,
         user_id: user.id,
         interest_rate: newDebt.interest_rate || null,
       };
@@ -128,17 +130,22 @@ const Debts = () => {
   const updateDebt = useMutation({
     mutationFn: async (updatedDebt: z.infer<typeof debtSchema>) => {
         if (!selectedDebt) throw new Error("No debt selected");
-        const { error } = await supabase.from("debts").update({ ...updatedDebt, interest_rate: updatedDebt.interest_rate || null }).eq("id", selectedDebt.id);
+        const { error } = await supabase.from("debts").update({ 
+          name: updatedDebt.name,
+          amount: updatedDebt.amount,
+          due_date: updatedDebt.due_date,
+          interest_rate: updatedDebt.interest_rate || null
+        }).eq("id", selectedDebt.id);
         if (error) throw new Error(error.message);
     },
     onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["debts"] });
-        toast({ title: "Success", description: "Debt updated!" });
-        setIsEditDialogOpen(false);
-        setSelectedDebt(null);
+      queryClient.invalidateQueries({ queryKey: ["debts"] });
+      toast({ title: "Success", description: "Debt updated!" });
+      setIsEditDialogOpen(false);
+      setSelectedDebt(null);
     },
     onError: (error) => {
-        toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     },
   });
   
