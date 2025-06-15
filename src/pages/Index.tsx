@@ -1,6 +1,7 @@
+
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -182,6 +183,7 @@ const Index = () => {
     to: endOfMonth(new Date()),
   });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const popoverContentRef = useRef<HTMLDivElement>(null);
 
   const handlePeriodChange = (selectedPeriod: string) => {
     setPeriod(selectedPeriod);
@@ -227,7 +229,20 @@ const Index = () => {
                 </span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[240px]">
+            <DropdownMenuContent 
+              align="end" 
+              className="w-[240px]"
+              onPointerDownOutside={(e) => {
+                if (popoverContentRef.current?.contains(e.target as Node)) {
+                  e.preventDefault();
+                }
+              }}
+              onFocusOutside={(e) => {
+                if (popoverContentRef.current?.contains(e.target as Node)) {
+                  e.preventDefault();
+                }
+              }}
+            >
               <DropdownMenuItem onSelect={() => handlePeriodChange("today")}>Today</DropdownMenuItem>
               <DropdownMenuItem onSelect={() => handlePeriodChange("this_week")}>This Week</DropdownMenuItem>
               <DropdownMenuItem onSelect={() => handlePeriodChange("this_month")}>This Month</DropdownMenuItem>
@@ -238,7 +253,7 @@ const Index = () => {
                   <PopoverTrigger asChild>
                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Custom Range</DropdownMenuItem>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="end">
+                  <PopoverContent ref={popoverContentRef} className="w-auto p-0" align="end">
                     <Calendar
                       initialFocus
                       mode="range"
