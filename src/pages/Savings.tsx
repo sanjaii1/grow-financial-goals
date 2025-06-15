@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useForm } from "react-hook-form";
@@ -17,21 +16,48 @@ import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "@/hooks/use-toast";
-import { Trash2, PlusCircle } from "lucide-react";
+import { Trash2, PlusCircle, MoreHorizontal, PiggyBank } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const savingsGoalSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -60,7 +86,9 @@ const fetchSavingsGoals = async () => {
 
 const Savings = () => {
   const queryClient = useQueryClient();
+  const [isAddGoalDialogOpen, setIsAddGoalDialogOpen] = useState(false);
   const [isAddContributionDialogOpen, setIsAddContributionDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<SavingsGoal | null>(null);
 
   const { data: savingsGoals, isLoading } = useQuery<SavingsGoal[]>({
@@ -86,6 +114,7 @@ const Savings = () => {
       queryClient.invalidateQueries({ queryKey: ["savings_goals"] });
       toast({ title: "Success", description: "Savings goal added!" });
       form.reset();
+      setIsAddGoalDialogOpen(false);
     },
     onError: (error) => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -100,6 +129,7 @@ const Savings = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["savings_goals"] });
       toast({ title: "Success", description: "Savings goal deleted." });
+      setIsDeleteDialogOpen(false);
     },
     onError: (error) => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -146,109 +176,172 @@ const Savings = () => {
     }
   };
 
-  return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Savings Goals</h1>
-        <Button asChild variant="outline">
-          <Link to="/">Dashboard</Link>
-        </Button>
-      </div>
+  const handleAddContributionClick = (goal: SavingsGoal) => {
+    setSelectedGoal(goal);
+    setIsAddContributionDialogOpen(true);
+  };
 
-      <Card className="mb-8">
-        <CardHeader><CardTitle>Add New Savings Goal</CardTitle></CardHeader>
+  const handleDeleteClick = (goal: SavingsGoal) => {
+    setSelectedGoal(goal);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (selectedGoal) {
+        deleteSavingsGoal.mutate(selectedGoal.id);
+    }
+  };
+
+  return (
+    <div className="w-full max-w-6xl mx-auto p-4 md:p-6 text-gray-300">
+      <Card className="bg-slate-900 border-slate-800 text-gray-300">
+        <CardHeader>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <CardTitle className="text-3xl font-bold flex items-center gap-2">
+                  <PiggyBank /> Savings Goals
+              </CardTitle>
+              <CardDescription className="text-gray-400 mt-1">
+                Manage your savings goals and track your progress.
+              </CardDescription>
+            </div>
+            <Dialog open={isAddGoalDialogOpen} onOpenChange={setIsAddGoalDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white"><PlusCircle className="mr-2 h-4 w-4" /> Add Goal</Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px] bg-slate-900 border-slate-700 text-gray-300">
+                <DialogHeader>
+                  <DialogTitle>Add New Savings Goal</DialogTitle>
+                  <DialogDescription className="text-gray-400">
+                    Enter the details of your savings goal below.
+                  </DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onAddGoalSubmit)} className="space-y-4">
+                    <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>Goal Name</FormLabel><FormControl><Input placeholder="e.g., New Car" {...field} className="bg-slate-800 border-slate-700 placeholder:text-gray-500" /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="target_amount" render={({ field }) => (<FormItem><FormLabel>Target Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 20000" {...field} className="bg-slate-800 border-slate-700 placeholder:text-gray-500" /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="target_date" render={({ field }) => (<FormItem><FormLabel>Target Date (Optional)</FormLabel><FormControl><Input type="date" {...field} className="bg-slate-800 border-slate-700" /></FormControl><FormMessage /></FormItem>)} />
+                    <Button type="submit" disabled={addSavingsGoal.isPending} className="w-full bg-blue-600 hover:bg-blue-700 text-white">{addSavingsGoal.isPending ? "Adding..." : "Add Goal"}</Button>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onAddGoalSubmit)} className="space-y-4">
-              <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>Goal Name</FormLabel><FormControl><Input placeholder="e.g., New Car" {...field} /></FormControl><FormMessage /></FormItem>)} />
-              <FormField control={form.control} name="target_amount" render={({ field }) => (<FormItem><FormLabel>Target Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 20000" {...field} /></FormControl><FormMessage /></FormItem>)} />
-              <FormField control={form.control} name="target_date" render={({ field }) => (<FormItem><FormLabel>Target Date (Optional)</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
-              <Button type="submit" disabled={addSavingsGoal.isPending}>{addSavingsGoal.isPending ? "Adding..." : "Add Goal"}</Button>
-            </form>
-          </Form>
+          <div className="rounded-md border border-slate-700">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b-slate-700 hover:bg-slate-900">
+                  <TableHead className="text-gray-400">Name</TableHead>
+                  <TableHead className="text-right text-gray-400">Target Amount</TableHead>
+                  <TableHead className="text-right text-gray-400">Saved Amount</TableHead>
+                  <TableHead className="text-right text-gray-400">Remaining</TableHead>
+                  <TableHead className="hidden md:table-cell text-gray-400">Target Date</TableHead>
+                  <TableHead className="hidden lg:table-cell text-gray-400">Progress</TableHead>
+                  <TableHead><span className="sr-only">Actions</span></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <TableRow key={i} className="border-slate-800">
+                      <TableCell><Skeleton className="h-4 w-32 bg-slate-700" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24 ml-auto bg-slate-700" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24 ml-auto bg-slate-700" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24 ml-auto bg-slate-700" /></TableCell>
+                      <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24 bg-slate-700" /></TableCell>
+                      <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-28 ml-auto bg-slate-700" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-8 ml-auto rounded-md bg-slate-700" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : savingsGoals?.length === 0 ? (
+                  <TableRow className="border-slate-800 hover:bg-slate-800/50">
+                    <TableCell colSpan={7} className="h-24 text-center text-gray-400">
+                      No savings goals found. Start by adding one.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  savingsGoals?.map(goal => {
+                    const progress = goal.target_amount > 0 ? (goal.current_amount / goal.target_amount) * 100 : 0;
+                    const remainingAmount = goal.target_amount - goal.current_amount;
+                    return (
+                      <TableRow key={goal.id} className="border-slate-800 hover:bg-slate-800/50">
+                        <TableCell className="font-medium">{goal.name}</TableCell>
+                        <TableCell className="text-right">₹{goal.target_amount.toLocaleString()}</TableCell>
+                        <TableCell className="text-right text-green-400">₹{goal.current_amount.toLocaleString()}</TableCell>
+                        <TableCell className="text-right text-red-400">₹{remainingAmount.toLocaleString()}</TableCell>
+                        <TableCell className="hidden md:table-cell">{goal.target_date ? new Date(goal.target_date).toLocaleDateString() : 'N/A'}</TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          <div className="flex items-center justify-start gap-2">
+                            <Progress value={progress} className="h-2 w-[100px] bg-slate-700" />
+                            <span className="text-xs text-gray-400">{`${Math.round(progress)}%`}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                           <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-slate-700 focus:bg-slate-700 data-[state=open]:bg-slate-700">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-slate-900 border-slate-700 text-gray-300">
+                              <DropdownMenuLabel className="border-b border-slate-700">Actions</DropdownMenuLabel>
+                                <DropdownMenuItem onClick={() => handleAddContributionClick(goal)} className="focus:bg-slate-800 focus:text-gray-200">
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    <span>Add Contribution</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-red-500 focus:text-red-500 focus:bg-slate-800" onClick={() => handleDeleteClick(goal)}>
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  <span>Delete</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
-
-      <div>
-        <h2 className="text-2xl font-bold mb-4">Your Goals</h2>
-        {isLoading ? (<p>Loading goals...</p>) : savingsGoals && savingsGoals.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {savingsGoals.map((goal) => {
-              const progress = goal.target_amount > 0 ? (goal.current_amount / goal.target_amount) * 100 : 0;
-              return (
-                <Card key={goal.id}>
-                  <CardHeader>
-                    <CardTitle className="flex justify-between items-center">
-                      {goal.name}
-                      <Button variant="ghost" size="icon" onClick={() => deleteSavingsGoal.mutate(goal.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-2">
-                      ${goal.current_amount.toLocaleString()} / ${goal.target_amount.toLocaleString()}
-                    </p>
-                    <Progress value={progress} className="mb-4" />
-                    {goal.target_date && (
-                      <p className="text-sm text-muted-foreground">
-                        Target Date: {new Date(goal.target_date).toLocaleDateString()}
-                      </p>
-                    )}
-                    <Dialog
-                      open={isAddContributionDialogOpen && selectedGoal?.id === goal.id}
-                      onOpenChange={(open) => {
-                        if (!open) {
-                          setIsAddContributionDialogOpen(false);
-                          setSelectedGoal(null);
-                        }
-                      }}
-                    >
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full mt-4"
-                          onClick={() => {
-                            setSelectedGoal(goal);
-                            setIsAddContributionDialogOpen(true);
-                          }}
-                        >
-                          <PlusCircle className="mr-2 h-4 w-4" /> Add Contribution
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Add Contribution to "{goal.name}"</DialogTitle>
-                        </DialogHeader>
-                        <Form {...addContributionForm}>
-                          <form onSubmit={addContributionForm.handleSubmit(onAddContributionSubmit)} className="space-y-4">
-                            <FormField
-                              control={addContributionForm.control}
-                              name="amount"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Amount</FormLabel>
-                                  <FormControl>
-                                    <Input type="number" placeholder="e.g., 100" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <Button type="submit" disabled={addContribution.isPending}>
-                              {addContribution.isPending ? "Adding..." : "Add"}
-                            </Button>
-                          </form>
-                        </Form>
-                      </DialogContent>
-                    </Dialog>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        ) : (<p>You have no savings goals yet. Add one to get started!</p>)}
-      </div>
+      
+      {/* Add Contribution Dialog */}
+      <Dialog open={isAddContributionDialogOpen} onOpenChange={setIsAddContributionDialogOpen}>
+        <DialogContent className="sm:max-w-[425px] bg-slate-900 border-slate-700 text-gray-300">
+            <DialogHeader>
+                <DialogTitle>Add Contribution to "{selectedGoal?.name}"</DialogTitle>
+                <DialogDescription className="text-gray-400">
+                    Enter the amount for your contribution.
+                </DialogDescription>
+            </DialogHeader>
+           <Form {...addContributionForm}>
+            <form onSubmit={addContributionForm.handleSubmit(onAddContributionSubmit)} className="space-y-4">
+              <FormField control={addContributionForm.control} name="amount" render={({ field }) => (<FormItem><FormLabel>Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 100" {...field} className="bg-slate-800 border-slate-700 placeholder:text-gray-500" /></FormControl><FormMessage /></FormItem>)} />
+              <Button type="submit" disabled={addContribution.isPending} className="w-full bg-blue-600 hover:bg-blue-700 text-white">{addContribution.isPending ? "Adding..." : "Add"}</Button>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Goal Alert Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent className="bg-slate-900 border-slate-700 text-gray-300">
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription className="text-gray-400">This action cannot be undone. This will permanently delete this savings goal.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="border-slate-700 hover:bg-slate-800 text-gray-300">Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteConfirm} disabled={deleteSavingsGoal.isPending}>
+                {deleteSavingsGoal.isPending ? 'Deleting...' : 'Delete'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
