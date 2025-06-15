@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { Session } from "@supabase/supabase-js";
 
 type AuthView = "login" | "signup";
 
 const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [session, setSession] = useState(null);
-  const [user, setUser] = useState<any>(null);
+  const [session, setSession] = useState<Session | null | undefined>(undefined);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,34 +19,23 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Profile info
-  const [username, setUsername] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
-  const [profileLoading, setProfileLoading] = useState(false);
-
-  // Set up auth state and fetch profile
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, sessionData) => {
-      setSession(sessionData);
-      setUser(sessionData?.user ?? null);
-      if (sessionData?.user) {
-        fetchProfile(sessionData.user.id);
-      }
-    });
-
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
+      if (session) {
+        navigate("/");
       }
     });
 
-    return () => {
-      subscription.unsubscribe();
-    };
-    // eslint-disable-next-line
-  }, []);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) {
+        navigate("/");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,89 +69,8 @@ const Auth = () => {
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setSession(null);
-    setUsername("");
-    setAvatarUrl("");
-    navigate("/auth", { replace: true });
-  };
-
-  // Fetch profile from Supabase
-  const fetchProfile = async (userId: string) => {
-    setProfileLoading(true);
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("username, avatar_url")
-      .eq("id", userId)
-      .maybeSingle();
-    if (data) {
-      setUsername(data.username || "");
-      setAvatarUrl(data.avatar_url || "");
-    }
-    setProfileLoading(false);
-  };
-
-  // Update profile details
-  const handleProfileUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!session || !user) return;
-    setProfileLoading(true);
-    const { error } = await supabase.from("profiles").update({
-      username,
-      avatar_url: avatarUrl
-    }).eq("id", user.id);
-    setProfileLoading(false);
-    if (error) {
-      toast({ title: "Profile update failed", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Profile updated", variant: "default" });
-    }
-  };
-
-  // If user is logged in, show profile
-  if (user && session) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-full max-w-md bg-background rounded-lg shadow-lg p-6 space-y-6 animate-fade-in">
-          <div className="flex justify-between items-center">
-            <h2 className="font-bold text-2xl">Profile</h2>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/">Dashboard</Link>
-            </Button>
-          </div>
-          <form onSubmit={handleProfileUpdate} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Email</label>
-              <Input value={user.email} disabled className="bg-muted" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Username</label>
-              <Input
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                placeholder="Enter username"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Avatar URL</label>
-              <Input
-                value={avatarUrl}
-                onChange={e => setAvatarUrl(e.target.value)}
-                placeholder="https://example.com/avatar.png"
-              />
-            </div>
-            <Button type="submit" disabled={profileLoading}>
-              {profileLoading ? "Saving..." : "Save Changes"}
-            </Button>
-          </form>
-          <Button onClick={handleLogout} variant="destructive" className="w-full mt-2">
-            Logout
-          </Button>
-        </div>
-      </div>
-    );
+  if (session === undefined) {
+    return <div className="min-h-screen flex items-center justify-center"><div>Loading...</div></div>;
   }
 
   // Auth form

@@ -16,6 +16,7 @@ import {
   PiggyBank,
   Wallet,
   LogOut,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./ThemeToggle";
@@ -99,6 +100,12 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
+           <SidebarMenuItem>
+            <NavButton to="/settings">
+              <Settings className="h-4 w-4" />
+              Settings
+            </NavButton>
+          </SidebarMenuItem>
           <SidebarMenuItem className="p-2">
             <ThemeToggle />
           </SidebarMenuItem>
