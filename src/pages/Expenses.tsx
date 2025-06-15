@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -215,7 +214,7 @@ const Expenses = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+    <>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Expenses</h1>
         <div className="flex items-center gap-4">
@@ -350,7 +349,7 @@ const Expenses = () => {
           )}
         </CardContent>
       </Card>
-    </div>
+    </>
   );
 };
 
