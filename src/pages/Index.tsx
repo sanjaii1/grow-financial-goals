@@ -1,18 +1,22 @@
 
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Session } from "@supabase/supabase-js";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { ArrowDownCircle, ArrowUpCircle, Wallet, Target, CreditCard } from "lucide-react";
+import { ArrowDownCircle, ArrowUpCircle, Wallet, Target, CreditCard, Calendar as CalendarIcon } from "lucide-react";
 import { SpendingByCategory } from "@/components/SpendingByCategory";
 import { SavingsPlan } from "@/components/SavingsPlan";
 import { CashFlowChart } from "@/components/CashFlowChart";
 import { RecentTransactions } from "@/components/RecentTransactions";
+import { DateRange } from "react-day-picker";
+import { format, startOfToday, endOfToday, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, parseISO, isWithinInterval } from "date-fns";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 
 const fetchDashboardData = async () => {
   const { data: { user } } = await supabase.auth.getUser();
@@ -38,11 +42,34 @@ const fetchDashboardData = async () => {
   };
 };
 
-const DashboardOverview = () => {
+const DashboardOverview = ({ date }: { date?: DateRange }) => {
   const { data, isLoading } = useQuery({
     queryKey: ['dashboardData'],
     queryFn: fetchDashboardData,
   });
+
+  const filteredData = useMemo(() => {
+    if (!data) return null;
+    if (!date?.from) {
+      return data;
+    }
+
+    const interval = { start: date.from, end: date.to || date.from };
+
+    const filteredIncomes = data.incomes.filter(income => {
+      return isWithinInterval(parseISO(income.income_date), interval);
+    });
+
+    const filteredExpenses = data.expenses.filter(expense => {
+      return isWithinInterval(parseISO(expense.expense_date), interval);
+    });
+
+    return {
+      ...data,
+      incomes: filteredIncomes,
+      expenses: filteredExpenses,
+    };
+  }, [data, date]);
 
   if (isLoading) {
     return (
@@ -102,8 +129,8 @@ const DashboardOverview = () => {
     );
   }
 
-  const totalIncome = data?.incomes.reduce((acc, income) => acc + income.amount, 0) || 0;
-  const totalExpenses = data?.expenses.reduce((acc, expense) => acc + expense.amount, 0) || 0;
+  const totalIncome = filteredData?.incomes.reduce((acc, income) => acc + income.amount, 0) || 0;
+  const totalExpenses = filteredData?.expenses.reduce((acc, expense) => acc + expense.amount, 0) || 0;
   const balance = totalIncome - totalExpenses;
   const totalSaved = data?.savingsGoals.reduce((acc, goal) => acc + goal.current_amount, 0) || 0;
   const remainingDebt = data?.debts.reduce((acc, debt) => acc + (debt.amount - (debt.paid_amount || 0)), 0) || 0;
@@ -135,13 +162,13 @@ const DashboardOverview = () => {
         ))}
       </div>
       <div className="mt-8">
-        <CashFlowChart incomes={data?.incomes || []} expenses={data?.expenses || []} />
+        <CashFlowChart incomes={filteredData?.incomes || []} expenses={filteredData?.expenses || []} />
       </div>
       <div className="mt-8">
-        <RecentTransactions incomes={data?.incomes || []} expenses={data?.expenses || []} />
+        <RecentTransactions incomes={filteredData?.incomes || []} expenses={filteredData?.expenses || []} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-        <SpendingByCategory expenses={data?.expenses || []} />
+        <SpendingByCategory expenses={filteredData?.expenses || []} />
         <SavingsPlan savingsGoals={data?.savingsGoals || []} />
       </div>
     </div>
@@ -150,16 +177,90 @@ const DashboardOverview = () => {
 
 
 const Index = () => {
+  const [period, setPeriod] = useState("this_month");
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: startOfMonth(new Date()),
+    to: endOfMonth(new Date()),
+  });
+
+  const handlePeriodChange = (selectedPeriod: string) => {
+    setPeriod(selectedPeriod);
+    const today = new Date();
+    if (selectedPeriod === "today") {
+      setDate({ from: startOfToday(), to: endOfToday() });
+    } else if (selectedPeriod === "this_week") {
+      setDate({ from: startOfWeek(today), to: endOfWeek(today) });
+    } else if (selectedPeriod === "this_month") {
+      setDate({ from: startOfMonth(today), to: endOfMonth(today) });
+    } else if (selectedPeriod === "this_year") {
+      setDate({ from: startOfYear(today), to: endOfYear(today) });
+    } else if (selectedPeriod === "all_time") {
+      setDate(undefined);
+    }
+  };
+
+  const periodLabels: { [key: string]: string } = {
+    today: "Today",
+    this_week: "This Week",
+    this_month: "This Month",
+    this_year: "This Year",
+    all_time: "All Time",
+    custom: "Custom Range"
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <Button asChild variant="outline">
-          <Link to="/auth">Profile</Link>
-        </Button>
+        <div className="flex items-center gap-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-[240px] justify-start text-left font-normal">
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                <span>
+                  {period === "custom" && date?.from
+                    ? date.to
+                      ? `${format(date.from, "LLL dd, y")} - ${format(date.to, "LLL dd, y")}`
+                      : format(date.from, "LLL dd, y")
+                    : periodLabels[period]}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[240px]">
+              <DropdownMenuItem onSelect={() => handlePeriodChange("today")}>Today</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => handlePeriodChange("this_week")}>This Week</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => handlePeriodChange("this_month")}>This Month</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => handlePeriodChange("this_year")}>This Year</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => handlePeriodChange("all_time")}>All Time</DropdownMenuItem>
+              <DropdownMenuSeparator />
+               <Popover>
+                  <PopoverTrigger asChild>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Custom Range</DropdownMenuItem>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="end">
+                    <Calendar
+                      initialFocus
+                      mode="range"
+                      defaultMonth={date?.from}
+                      selected={date}
+                      onSelect={(range) => {
+                        setDate(range)
+                        setPeriod("custom")
+                      }}
+                      numberOfMonths={2}
+                    />
+                  </PopoverContent>
+                </Popover>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Button asChild variant="outline">
+            <Link to="/auth">Profile</Link>
+          </Button>
+        </div>
       </div>
 
-      <DashboardOverview />
+      <DashboardOverview date={date} />
     </div>
   );
 };
