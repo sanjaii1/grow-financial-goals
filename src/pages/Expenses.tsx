@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -107,87 +106,85 @@ const Expenses = () => {
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Expenses</h1>
-          <Button asChild variant="outline">
-            <Link to="/">Dashboard</Link>
-          </Button>
-        </div>
-
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Add New Expense</CardTitle>
-            <CardDescription>Enter the details of your expense below.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                placeholder="Description (e.g. Groceries)"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-              />
-              <Input
-                type="number"
-                placeholder="Amount"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                required
-              />
-              <Input
-                placeholder="Category (e.g. Food)"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                required
-              />
-              <Input
-                type="date"
-                value={expenseDate}
-                onChange={(e) => setExpenseDate(e.target.value)}
-                required
-              />
-              <Button type="submit" disabled={mutation.isPending} className="md:col-span-2">
-                {mutation.isPending ? "Adding..." : "Add Expense"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Expense History</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  <TableRow><TableCell colSpan={4} className="text-center">Loading...</TableCell></TableRow>
-                ) : expenses && expenses.length > 0 ? (
-                  expenses.map((expense) => (
-                    <TableRow key={expense.id}>
-                      <TableCell>{new Date(expense.expense_date).toLocaleDateString()}</TableCell>
-                      <TableCell>{expense.description}</TableCell>
-                      <TableCell>{expense.category}</TableCell>
-                      <TableCell className="text-right">${expense.amount.toFixed(2)}</TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow><TableCell colSpan={4} className="text-center">No expenses found.</TableCell></TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Expenses</h1>
+        <Button asChild variant="outline">
+          <Link to="/">Dashboard</Link>
+        </Button>
       </div>
+
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Add New Expense</CardTitle>
+          <CardDescription>Enter the details of your expense below.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              placeholder="Description (e.g. Groceries)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              required
+            />
+            <Input
+              type="number"
+              placeholder="Amount"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              required
+            />
+            <Input
+              placeholder="Category (e.g. Food)"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              required
+            />
+            <Input
+              type="date"
+              value={expenseDate}
+              onChange={(e) => setExpenseDate(e.target.value)}
+              required
+            />
+            <Button type="submit" disabled={mutation.isPending} className="md:col-span-2">
+              {mutation.isPending ? "Adding..." : "Add Expense"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Expense History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Date</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow><TableCell colSpan={4} className="text-center">Loading...</TableCell></TableRow>
+              ) : expenses && expenses.length > 0 ? (
+                expenses.map((expense) => (
+                  <TableRow key={expense.id}>
+                    <TableCell>{new Date(expense.expense_date).toLocaleDateString()}</TableCell>
+                    <TableCell>{expense.description}</TableCell>
+                    <TableCell>{expense.category}</TableCell>
+                    <TableCell className="text-right">${expense.amount.toFixed(2)}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow><TableCell colSpan={4} className="text-center">No expenses found.</TableCell></TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 };
