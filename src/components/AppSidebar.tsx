@@ -9,16 +9,15 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import {
-  LayoutDashboard,
-  Banknote,
-  ShoppingCart,
+  Home,
   CreditCard,
-  PiggyBank,
-  TrendingUp,
-  LogOut,
-  Settings,
-  ChartBar,
+  Wallet,
+  DollarSign,
   Target,
+  TrendingUp,
+  Clock,
+  Settings,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./ThemeToggle";
@@ -27,41 +26,14 @@ import { toast } from "sonner";
 import { Button } from "./ui/button";
 
 const menuItems = [
-  {
-    href: "/",
-    title: "Dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    href: "/incomes",
-    title: "Income",
-    icon: Banknote,
-  },
-  {
-    href: "/expenses",
-    title: "Expenses",
-    icon: ShoppingCart,
-  },
-  {
-    href: "/debts",
-    title: "Debts",
-    icon: CreditCard,
-  },
-  {
-    href: "/savings",
-    title: "Savings",
-    icon: PiggyBank,
-  },
-  {
-    href: "/reports",
-    title: "Reports",
-    icon: ChartBar,
-  },
-  {
-    href: "/budgets",
-    title: "Budgets",
-    icon: Target,
-  },
+  { href: "/", title: "Dashboard", icon: Home },
+  { href: "/expenses", title: "Expenses", icon: CreditCard },
+  { href: "/incomes", title: "Income", icon: Wallet },
+  { href: "/budgets", title: "Budget", icon: DollarSign },
+  { href: "/savings", title: "Savings", icon: Target },
+  { href: "/reports", title: "Reports", icon: TrendingUp },
+  { href: "/analytics", title: "Analytics", icon: Clock },
+  { href: "/settings", title: "Settings", icon: Settings },
 ];
 
 const NavButton = ({ to, children, className }: { to: string, children: React.ReactNode, className?: string }) => (
@@ -112,22 +84,17 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-           <SidebarMenuItem>
-            <NavButton to="/settings">
-              <Settings className="h-4 w-4" />
-              Settings
-            </NavButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem className="p-2">
+           <SidebarMenuItem className="flex items-center justify-between px-3 text-muted-foreground">
+            <span>Theme</span>
             <ThemeToggle />
           </SidebarMenuItem>
           <SidebarMenuItem>
              <Button
                 variant="ghost"
                 onClick={handleSignOut}
-                className="w-full justify-start text-muted-foreground hover:text-primary"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary w-full justify-start"
               >
-                <LogOut className="mr-2 h-4 w-4" />
+                <LogOut className="h-4 w-4" />
                 Sign Out
               </Button>
           </SidebarMenuItem>
