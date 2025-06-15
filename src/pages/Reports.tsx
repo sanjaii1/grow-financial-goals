@@ -1,5 +1,4 @@
-
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -9,17 +8,9 @@ import { Database } from "@/integrations/supabase/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ColoredProgress } from "@/components/ColoredProgress";
-import { ChartBar, TrendingUp, TrendingDown, CalendarDays, Download } from "lucide-react";
+import { ChartBar, TrendingUp, TrendingDown, CalendarDays } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CashFlowChart } from "@/components/CashFlowChart";
-import { Button } from "@/components/ui/button";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useDownloadReport } from "@/hooks/useDownloadReport";
 
 type Expense = Database["public"]["Tables"]["expenses"]["Row"];
 type Income = Database["public"]["Tables"]["incomes"]["Row"];
@@ -45,8 +36,6 @@ const fetchIncomes = async (userId: string): Promise<Income[]> => {
 const Reports = () => {
     const navigate = useNavigate();
     const [user, setUser] = useState<User | null>(null);
-    const reportRef = useRef<HTMLDivElement>(null);
-    const { handleDownloadPdf, handleDownloadJson } = useDownloadReport({ reportRef, fileName: 'reports' });
     
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -118,43 +107,19 @@ const Reports = () => {
         return { sources, total };
     }, [incomes]);
 
-    const reportDataForJson = useMemo(() => ({
-        spendingByCategory,
-        incomeBySource,
-        cashFlow: { incomes: incomes || [], expenses: expenses || [] }
-    }), [spendingByCategory, incomeBySource, incomes, expenses]);
-    
     const isLoading = isLoadingExpenses || isLoadingIncomes;
     
     const CATEGORY_COLORS = [ "#3b82f6", "#ec4899", "#f59e0b", "#22c55e", "#8b5cf6", "#6366f1", "#ef4444", "#f97316" ];
 
     return (
-        <div ref={reportRef} className="w-full max-w-6xl mx-auto p-4 md:p-6 bg-background">
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h1 className="text-3xl font-bold flex items-center gap-2">
-                        <ChartBar className="h-8 w-8" /> Reports & Analytics
-                    </h1>
-                    <p className="text-muted-foreground mt-1">
-                        Analyze your financial data with insightful reports and charts.
-                    </p>
-                </div>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button>
-                            <Download className="mr-2 h-4 w-4" />
-                            Download
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={handleDownloadPdf}>
-                            Download as PDF
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDownloadJson(reportDataForJson)}>
-                            Download as JSON
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+        <div className="w-full max-w-6xl mx-auto p-4 md:p-6 bg-background">
+            <div className="mb-6">
+                <h1 className="text-3xl font-bold flex items-center gap-2">
+                    <ChartBar className="h-8 w-8" /> Reports & Analytics
+                </h1>
+                <p className="text-muted-foreground mt-1">
+                    Analyze your financial data with insightful reports and charts.
+                </p>
             </div>
             <Card>
                 <CardContent className="pt-6">
