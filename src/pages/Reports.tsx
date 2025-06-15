@@ -78,12 +78,6 @@ const Reports = () => {
         enabled: !!user,
     });
 
-    const reportDataForJson = useMemo(() => ({
-        spendingByCategory,
-        incomeBySource,
-        cashFlow: { incomes, expenses }
-    }), [spendingByCategory, incomeBySource, incomes, expenses]);
-
     const spendingByCategory = useMemo(() => {
         if (!expenses) return { categories: [], total: 0 };
         const categoryMap = expenses.reduce((acc, expense) => {
@@ -123,6 +117,12 @@ const Reports = () => {
 
         return { sources, total };
     }, [incomes]);
+
+    const reportDataForJson = useMemo(() => ({
+        spendingByCategory,
+        incomeBySource,
+        cashFlow: { incomes: incomes || [], expenses: expenses || [] }
+    }), [spendingByCategory, incomeBySource, incomes, expenses]);
     
     const isLoading = isLoadingExpenses || isLoadingIncomes;
     
