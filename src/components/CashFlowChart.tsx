@@ -105,36 +105,42 @@ export function CashFlowChart({ incomes, expenses }: CashFlowChartProps) {
   const chartData: ChartData[] = useMemo(() => {
     if (view === 'yearly') {
         const monthlyData: { [key: string]: { income: number; expense: number } } = {};
+        const today = new Date();
+
+        // Initialize the last 12 months
+        for (let i = 11; i >= 0; i--) {
+            const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+            const monthKey = format(date, "MMM yyyy");
+            monthlyData[monthKey] = { income: 0, expense: 0 };
+        }
 
         incomes.forEach(income => {
           if (!income.income_date) return;
-          const month = format(parseISO(income.income_date), "MMM yyyy");
-          if (!monthlyData[month]) {
-            monthlyData[month] = { income: 0, expense: 0 };
+          const monthKey = format(parseISO(income.income_date), "MMM yyyy");
+          if (monthlyData.hasOwnProperty(monthKey)) {
+            monthlyData[monthKey].income += income.amount;
           }
-          monthlyData[month].income += income.amount;
         });
 
         expenses.forEach(expense => {
           if (!expense.expense_date) return;
-          const month = format(parseISO(expense.expense_date), "MMM yyyy");
-          if (!monthlyData[month]) {
-            monthlyData[month] = { income: 0, expense: 0 };
+          const monthKey = format(parseISO(expense.expense_date), "MMM yyyy");
+          if (monthlyData.hasOwnProperty(monthKey)) {
+            monthlyData[monthKey].expense += expense.amount;
           }
-          monthlyData[month].expense += expense.amount;
         });
 
         const sortedMonths = Object.keys(monthlyData).sort((a, b) => {
           return new Date(a).getTime() - new Date(b).getTime();
         });
         
-        const data = sortedMonths.map(month => ({
-          month: month.slice(0, 3),
-          income: monthlyData[month].income,
-          expense: monthlyData[month].expense,
+        const data = sortedMonths.map(monthKey => ({
+          month: monthKey.slice(0, 3),
+          income: monthlyData[monthKey].income,
+          expense: monthlyData[monthKey].expense,
         }));
 
-        return data.slice(-12);
+        return data;
 
     } else if (view === 'monthly') {
         return processDailyData(incomes, expenses, 30);
