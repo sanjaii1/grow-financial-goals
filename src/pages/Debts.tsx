@@ -281,42 +281,40 @@ const Debts = () => {
 
   return (
     <div className="w-full p-4 md:p-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+              <span role="img" aria-label="credit card">💳</span> Debts
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Manage your debts and plan your repayments.
+          </p>
+        </div>
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="w-full md:w-auto"><PlusCircle className="mr-2 h-4 w-4" /> Add Debt</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Add New Debt</DialogTitle>
+              <DialogDescription>
+                Enter the details of your debt below.
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...addDebtForm}>
+              <form onSubmit={addDebtForm.handleSubmit(onAddSubmit)} className="space-y-4">
+                <FormField control={addDebtForm.control} name="name" render={({ field }) => (<FormItem><FormLabel>Debt Name</FormLabel><FormControl><Input placeholder="e.g., Credit Card" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={addDebtForm.control} name="amount" render={({ field }) => (<FormItem><FormLabel>Total Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 5000" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={addDebtForm.control} name="interest_rate" render={({ field }) => (<FormItem><FormLabel>Interest Rate (%)</FormLabel><FormControl><Input type="number" placeholder="e.g., 18.9" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={addDebtForm.control} name="due_date" render={({ field }) => (<FormItem><FormLabel>Due Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <Button type="submit" disabled={addDebt.isPending} className="w-full">{addDebt.isPending ? "Adding..." : "Add Debt"}</Button>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      </div>
       <Card>
-        <CardHeader>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <CardTitle className="text-3xl font-bold flex items-center gap-2">
-                  <span role="img" aria-label="credit card">💳</span> Debts
-              </CardTitle>
-              <CardDescription className="mt-1">
-                Manage your debts and plan your repayments.
-              </CardDescription>
-            </div>
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="w-full md:w-auto"><PlusCircle className="mr-2 h-4 w-4" /> Add Debt</Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Add New Debt</DialogTitle>
-                  <DialogDescription>
-                    Enter the details of your debt below.
-                  </DialogDescription>
-                </DialogHeader>
-                <Form {...addDebtForm}>
-                  <form onSubmit={addDebtForm.handleSubmit(onAddSubmit)} className="space-y-4">
-                    <FormField control={addDebtForm.control} name="name" render={({ field }) => (<FormItem><FormLabel>Debt Name</FormLabel><FormControl><Input placeholder="e.g., Credit Card" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={addDebtForm.control} name="amount" render={({ field }) => (<FormItem><FormLabel>Total Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 5000" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={addDebtForm.control} name="interest_rate" render={({ field }) => (<FormItem><FormLabel>Interest Rate (%)</FormLabel><FormControl><Input type="number" placeholder="e.g., 18.9" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={addDebtForm.control} name="due_date" render={({ field }) => (<FormItem><FormLabel>Due Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <Button type="submit" disabled={addDebt.isPending} className="w-full">{addDebt.isPending ? "Adding..." : "Add Debt"}</Button>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2">
               <div className="relative w-full">

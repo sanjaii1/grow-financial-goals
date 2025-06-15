@@ -241,41 +241,39 @@ const Savings = () => {
 
   return (
     <div className="w-full max-w-6xl mx-auto p-4 md:p-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+              <PiggyBank /> Savings Goals
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Manage your savings goals and track your progress.
+          </p>
+        </div>
+        <Dialog open={isAddGoalDialogOpen} onOpenChange={setIsAddGoalDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="w-full md:w-auto"><PlusCircle className="mr-2 h-4 w-4" /> Add Goal</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Add New Savings Goal</DialogTitle>
+              <DialogDescription>
+                Enter the details of your savings goal below.
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onAddGoalSubmit)} className="space-y-4">
+                <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>Goal Name</FormLabel><FormControl><Input placeholder="e.g., New Car" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={form.control} name="target_amount" render={({ field }) => (<FormItem><FormLabel>Target Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 20000" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={form.control} name="target_date" render={({ field }) => (<FormItem><FormLabel>Target Date (Optional)</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <Button type="submit" disabled={addSavingsGoal.isPending} className="w-full">{addSavingsGoal.isPending ? "Adding..." : "Add Goal"}</Button>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      </div>
       <Card>
-        <CardHeader>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <CardTitle className="text-3xl font-bold flex items-center gap-2">
-                  <PiggyBank /> Savings Goals
-              </CardTitle>
-              <CardDescription className="mt-1">
-                Manage your savings goals and track your progress.
-              </CardDescription>
-            </div>
-            <Dialog open={isAddGoalDialogOpen} onOpenChange={setIsAddGoalDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="w-full md:w-auto"><PlusCircle className="mr-2 h-4 w-4" /> Add Goal</Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Add New Savings Goal</DialogTitle>
-                  <DialogDescription>
-                    Enter the details of your savings goal below.
-                  </DialogDescription>
-                </DialogHeader>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onAddGoalSubmit)} className="space-y-4">
-                    <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>Goal Name</FormLabel><FormControl><Input placeholder="e.g., New Car" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={form.control} name="target_amount" render={({ field }) => (<FormItem><FormLabel>Target Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 20000" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={form.control} name="target_date" render={({ field }) => (<FormItem><FormLabel>Target Date (Optional)</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <Button type="submit" disabled={addSavingsGoal.isPending} className="w-full">{addSavingsGoal.isPending ? "Adding..." : "Add Goal"}</Button>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2">
               <div className="relative w-full">

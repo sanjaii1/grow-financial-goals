@@ -113,16 +113,16 @@ const Reports = () => {
 
     return (
         <div className="w-full max-w-6xl mx-auto p-4 md:p-6">
+            <div className="mb-6">
+                <h1 className="text-3xl font-bold flex items-center gap-2">
+                    <ChartBar className="h-8 w-8" /> Reports & Analytics
+                </h1>
+                <p className="text-muted-foreground mt-1">
+                    Analyze your financial data with insightful reports and charts.
+                </p>
+            </div>
             <Card>
-                <CardHeader>
-                    <CardTitle className="text-3xl font-bold flex items-center gap-2">
-                        <ChartBar className="h-8 w-8" /> Reports & Analytics
-                    </CardTitle>
-                    <CardDescription className="mt-1">
-                        Analyze your financial data with insightful reports and charts.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                     <Tabs defaultValue="spending">
                         <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3">
                             <TabsTrigger value="spending"><TrendingDown className="mr-2 h-4 w-4" />Spending Analysis</TabsTrigger>
