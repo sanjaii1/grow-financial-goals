@@ -20,7 +20,7 @@ export function SavingsPlan({ savingsGoals }: SavingsPlanProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>My Savings Plan</CardTitle>
+        <CardTitle className="text-lg font-semibold">Savings</CardTitle>
         <CardDescription>
           Total Saved: ₹{totalSaved.toLocaleString()} of ₹{totalTarget.toLocaleString()}
         </CardDescription>

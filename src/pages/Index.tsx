@@ -15,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
+import { StatisticsChart } from "@/components/StatisticsChart";
 
 const fetchDashboardData = async () => {
   const { data: { user } } = await supabase.auth.getUser();
@@ -178,8 +179,9 @@ const DashboardOverview = ({ date }: { date?: DateRange }) => {
       <div className="mt-8">
         <RecentTransactions incomes={filteredData?.incomes || []} expenses={filteredData?.expenses || []} />
       </div>
-      <div className="mt-8">
+      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <SavingsPlan savingsGoals={data?.savingsGoals || []} />
+        <StatisticsChart expenses={filteredData?.expenses || []} />
       </div>
     </div>
   );
