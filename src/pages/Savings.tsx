@@ -275,7 +275,7 @@ const Savings = () => {
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-center gap-2">
               <div className="relative w-full">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -286,11 +286,11 @@ const Savings = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <Collapsible open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
+              <Collapsible open={isFiltersOpen} onOpenChange={setIsFiltersOpen} className="w-full sm:w-auto">
                 <CollapsibleTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <Filter className="h-4 w-4" />
-                    <span className="sr-only">Toggle filters</span>
+                  <Button variant="outline" className="w-full">
+                    <Filter className="h-4 w-4 mr-2" />
+                    <span>{isFiltersOpen ? "Hide" : "Show"} Filters</span>
                   </Button>
                 </CollapsibleTrigger>
               </Collapsible>

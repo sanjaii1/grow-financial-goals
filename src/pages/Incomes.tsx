@@ -170,20 +170,20 @@ const Incomes = () => {
 
   return (
     <div className="w-full">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
+          <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
             <span role="img" aria-label="money bag">💰</span> Incomes
           </h1>
           <p className="text-muted-foreground">Manage your income sources and track your earnings.</p>
         </div>
-        <Button onClick={handleAddClick}>
+        <Button onClick={handleAddClick} className="w-full md:w-auto">
           <PlusCircle className="mr-2 h-4 w-4" /> Add Income
         </Button>
       </div>
       <Card>
         <CardContent className="pt-6">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
             <div className="relative w-full max-w-sm">
               <Input
                 placeholder="Search income..."
@@ -195,7 +195,7 @@ const Incomes = () => {
                 <Search className="h-5 w-5 text-muted-foreground" />
               </span>
             </div>
-            <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
+            <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className="w-full sm:w-auto">
                 <Filter className="mr-2 h-4 w-4" />
                 {showFilters ? "Hide" : "Show"} Filters
             </Button>
