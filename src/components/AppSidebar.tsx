@@ -1,4 +1,3 @@
-
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -17,6 +16,7 @@ import {
   Wallet,
   LogOut,
   Settings,
+  ChartBar,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./ThemeToggle";
@@ -49,6 +49,11 @@ const menuItems = [
     href: "/savings",
     title: "Savings",
     icon: PiggyBank,
+  },
+  {
+    href: "/reports",
+    title: "Reports",
+    icon: ChartBar,
   },
 ];
 
