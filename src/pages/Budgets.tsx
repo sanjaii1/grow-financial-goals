@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
-import { PlusCircle, Target, Edit, Trash2 } from "lucide-react";
+import { PlusCircle, Target, Edit, Trash2, MoreHorizontal } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,12 @@ import { Progress } from "@/components/ui/progress";
 import BudgetDialog from "@/components/budgets/BudgetDialog";
 import DeleteBudgetAlert from "@/components/budgets/DeleteBudgetAlert";
 import { ColoredProgress } from "@/components/ColoredProgress";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type Budget = Database["public"]["Tables"]["budgets"]["Row"];
 type Expense = Database["public"]["Tables"]["expenses"]["Row"];
@@ -134,10 +140,6 @@ const Budgets = () => {
                                         <div className="flex-1 mb-4 sm:mb-0">
                                             <div className="flex items-center justify-between">
                                                 <p className="text-lg font-semibold">{budget.category}</p>
-                                                <div className="sm:hidden">
-                                                    <Button variant="ghost" size="icon" onClick={() => handleEditBudget(budget)}><Edit className="h-4 w-4" /></Button>
-                                                    <Button variant="ghost" size="icon" onClick={() => handleDeleteBudget(budget.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                                                </div>
                                             </div>
                                             <div className="flex items-center gap-4 mt-2">
                                                 <ColoredProgress value={budget.progress} indicatorColor={CATEGORY_COLORS[index % CATEGORY_COLORS.length]} className="w-full" />
@@ -147,9 +149,28 @@ const Budgets = () => {
                                                 ₹{budget.spent.toLocaleString()} spent of ₹{budget.amount.toLocaleString()}
                                             </p>
                                         </div>
-                                        <div className="hidden sm:flex items-center gap-2">
-                                            <Button variant="outline" size="sm" onClick={() => handleEditBudget(budget)}><Edit className="mr-2 h-4 w-4" />Edit</Button>
-                                            <Button variant="destructive" size="sm" onClick={() => handleDeleteBudget(budget.id)}><Trash2 className="mr-2 h-4 w-4" />Delete</Button>
+                                        <div className="flex-shrink-0 self-end sm:self-center">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                                        <span className="sr-only">Open menu</span>
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onClick={() => handleEditBudget(budget)}>
+                                                        <Edit className="mr-2 h-4 w-4" />
+                                                        <span>Edit</span>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={() => handleDeleteBudget(budget.id)}
+                                                        className="text-destructive focus:text-destructive"
+                                                    >
+                                                        <Trash2 className="mr-2 h-4 w-4" />
+                                                        <span>Delete</span>
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
                                     </div>
                                 </Card>
