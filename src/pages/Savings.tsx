@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useForm } from "react-hook-form";
@@ -173,22 +172,70 @@ const Savings = () => {
         {isLoading ? (<p>Loading goals...</p>) : savingsGoals && savingsGoals.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {savingsGoals.map((goal) => {
-              const progress = (goal.current_amount / goal.target_amount) * 100;
+              const progress = goal.target_amount > 0 ? (goal.current_amount / goal.target_amount) * 100 : 0;
               return (
                 <Card key={goal.id}>
-                  <CardHeader><CardTitle className="flex justify-between items-center">{goal.name}<Button variant="ghost" size="icon" onClick={() => deleteSavingsGoal.mutate(goal.id)}><Trash2 className="h-4 w-4" /></Button></CardTitle></CardHeader>
+                  <CardHeader>
+                    <CardTitle className="flex justify-between items-center">
+                      {goal.name}
+                      <Button variant="ghost" size="icon" onClick={() => deleteSavingsGoal.mutate(goal.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground mb-2">${goal.current_amount.toLocaleString()} / ${goal.target_amount.toLocaleString()}</p>
+                    <p className="text-muted-foreground mb-2">
+                      ${goal.current_amount.toLocaleString()} / ${goal.target_amount.toLocaleString()}
+                    </p>
                     <Progress value={progress} className="mb-4" />
-                    {goal.target_date && (<p className="text-sm text-muted-foreground">Target Date: {new Date(goal.target_date).toLocaleDateString()}</p>)}
-                    <Dialog open={isAddContributionDialogOpen && selectedGoal?.id === goal.id} onOpenChange={(open) => { if (!open) { setIsAddContributionDialogOpen(false); setSelectedGoal(null); } }}>
-                      <DialogTrigger asChild><Button variant="outline" className="w-full mt-4" onClick={() => { setSelectedGoal(goal); setIsAddContributionDialogOpen(true); }}}><PlusCircle className="mr-2 h-4 w-4" /> Add Contribution</Button></DialogTrigger>
+                    {goal.target_date && (
+                      <p className="text-sm text-muted-foreground">
+                        Target Date: {new Date(goal.target_date).toLocaleDateString()}
+                      </p>
+                    )}
+                    <Dialog
+                      open={isAddContributionDialogOpen && selectedGoal?.id === goal.id}
+                      onOpenChange={(open) => {
+                        if (!open) {
+                          setIsAddContributionDialogOpen(false);
+                          setSelectedGoal(null);
+                        }
+                      }}
+                    >
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full mt-4"
+                          onClick={() => {
+                            setSelectedGoal(goal);
+                            setIsAddContributionDialogOpen(true);
+                          }}
+                        >
+                          <PlusCircle className="mr-2 h-4 w-4" /> Add Contribution
+                        </Button>
+                      </DialogTrigger>
                       <DialogContent>
-                        <DialogHeader><DialogTitle>Add Contribution to "{goal.name}"</DialogTitle></DialogHeader>
+                        <DialogHeader>
+                          <DialogTitle>Add Contribution to "{goal.name}"</DialogTitle>
+                        </DialogHeader>
                         <Form {...addContributionForm}>
                           <form onSubmit={addContributionForm.handleSubmit(onAddContributionSubmit)} className="space-y-4">
-                            <FormField control={addContributionForm.control} name="amount" render={({ field }) => (<FormItem><FormLabel>Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 100" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                            <Button type="submit" disabled={addContribution.isPending}>{addContribution.isPending ? "Adding..." : "Add"}</Button>
+                            <FormField
+                              control={addContributionForm.control}
+                              name="amount"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Amount</FormLabel>
+                                  <FormControl>
+                                    <Input type="number" placeholder="e.g., 100" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <Button type="submit" disabled={addContribution.isPending}>
+                              {addContribution.isPending ? "Adding..." : "Add"}
+                            </Button>
                           </form>
                         </Form>
                       </DialogContent>
