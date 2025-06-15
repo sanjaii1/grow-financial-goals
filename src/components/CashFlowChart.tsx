@@ -198,7 +198,7 @@ export function CashFlowChart({ incomes, expenses }: CashFlowChartProps) {
           <BarChart 
             accessibilityLayer 
             data={chartData} 
-            margin={isMobile ? { top: 10, right: 10, left: -10, bottom: 0 } : { top: 20, right: 20, left: 20, bottom: 5 }}
+            margin={isMobile ? { top: 10, right: 10, left: 0, bottom: 0 } : { top: 20, right: 20, left: 20, bottom: 5 }}
           >
             <CartesianGrid vertical={false} />
             <XAxis
@@ -206,7 +206,11 @@ export function CashFlowChart({ incomes, expenses }: CashFlowChartProps) {
               tickLine={false}
               tickMargin={10}
               axisLine={false}
-              interval={view === 'monthly' ? (isMobile ? 6 : 4) : view === 'daily' ? (isMobile ? 1 : 0) : 'preserveStartEnd'}
+              interval={
+                view === 'yearly' ? (isMobile ? 2 : 0) :
+                view === 'monthly' ? (isMobile ? 6 : 4) :
+                (isMobile ? 1 : 0)
+              }
               fontSize={isMobile ? 10 : 12}
             />
             <YAxis
@@ -223,7 +227,11 @@ export function CashFlowChart({ incomes, expenses }: CashFlowChartProps) {
                   indicator="dot"
               />}
             />
-            <Legend wrapperStyle={isMobile ? { paddingTop: '20px' } : {}} />
+            <Legend 
+              verticalAlign="bottom"
+              wrapperStyle={{ paddingTop: '20px', fontSize: isMobile ? '10px' : '12px' }}
+              iconSize={10}
+            />
             <ReferenceLine y={0} stroke="hsl(var(--border))" />
             <Bar dataKey="income" fill="var(--color-income)" radius={[4, 4, 0, 0]} />
             <Bar dataKey="expense" fill="var(--color-expense)" radius={[4, 4, 0, 0]} />
