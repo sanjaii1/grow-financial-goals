@@ -13,8 +13,9 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { format, parseISO } from "date-fns"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 type ChartData = {
   month: string;
@@ -54,49 +55,127 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export function CashFlowChart({ incomes, expenses }: CashFlowChartProps) {
-  const chartData: ChartData[] = useMemo(() => {
-    const monthlyData: { [key: string]: { income: number; expense: number } } = {};
+const processDailyData = (incomes: Income[], expenses: Expense[], days: number): ChartData[] => {
+    const dailyData: { [key: string]: { income: number; expense: number } } = {};
+    const today = new Date();
+
+    for (let i = days - 1; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+        const dayKey = format(date, "yyyy-MM-dd");
+        dailyData[dayKey] = { income: 0, expense: 0 };
+    }
+    
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - (days - 1));
+    startDate.setHours(0, 0, 0, 0);
 
     incomes.forEach(income => {
-      if (!income.income_date) return;
-      const month = format(parseISO(income.income_date), "MMM yyyy");
-      if (!monthlyData[month]) {
-        monthlyData[month] = { income: 0, expense: 0 };
-      }
-      monthlyData[month].income += income.amount;
+        if (!income.income_date) return;
+        const incomeDate = parseISO(income.income_date);
+        if (incomeDate >= startDate && incomeDate <= today) {
+            const dayKey = format(incomeDate, "yyyy-MM-dd");
+            if (dailyData.hasOwnProperty(dayKey)) {
+                dailyData[dayKey].income += income.amount;
+            }
+        }
     });
 
     expenses.forEach(expense => {
-      if (!expense.expense_date) return;
-      const month = format(parseISO(expense.expense_date), "MMM yyyy");
-      if (!monthlyData[month]) {
-        monthlyData[month] = { income: 0, expense: 0 };
-      }
-      monthlyData[month].expense += expense.amount;
+        if (!expense.expense_date) return;
+        const expenseDate = parseISO(expense.expense_date);
+        if (expenseDate >= startDate && expenseDate <= today) {
+            const dayKey = format(expenseDate, "yyyy-MM-dd");
+            if (dailyData.hasOwnProperty(dayKey)) {
+                dailyData[dayKey].expense += expense.amount;
+            }
+        }
     });
 
-    const sortedMonths = Object.keys(monthlyData).sort((a, b) => {
-      return new Date(a).getTime() - new Date(b).getTime();
-    });
-    
-    return sortedMonths.map(month => ({
-      month: month.slice(0, 3),
-      income: monthlyData[month].income,
-      expense: monthlyData[month].expense,
-    })).slice(-12);
-  }, [incomes, expenses]);
+    return Object.keys(dailyData).map(dayKey => ({
+        month: format(parseISO(dayKey), "MMM d"),
+        income: dailyData[dayKey].income,
+        expense: dailyData[dayKey].expense,
+    }));
+}
 
-  if (chartData.length === 0) {
+export function CashFlowChart({ incomes, expenses }: CashFlowChartProps) {
+  const [view, setView] = useState<'yearly' | 'monthly' | 'daily'>('yearly');
+
+  const chartData: ChartData[] = useMemo(() => {
+    if (view === 'yearly') {
+        const monthlyData: { [key: string]: { income: number; expense: number } } = {};
+
+        incomes.forEach(income => {
+          if (!income.income_date) return;
+          const month = format(parseISO(income.income_date), "MMM yyyy");
+          if (!monthlyData[month]) {
+            monthlyData[month] = { income: 0, expense: 0 };
+          }
+          monthlyData[month].income += income.amount;
+        });
+
+        expenses.forEach(expense => {
+          if (!expense.expense_date) return;
+          const month = format(parseISO(expense.expense_date), "MMM yyyy");
+          if (!monthlyData[month]) {
+            monthlyData[month] = { income: 0, expense: 0 };
+          }
+          monthlyData[month].expense += expense.amount;
+        });
+
+        const sortedMonths = Object.keys(monthlyData).sort((a, b) => {
+          return new Date(a).getTime() - new Date(b).getTime();
+        });
+        
+        const data = sortedMonths.map(month => ({
+          month: month.slice(0, 3),
+          income: monthlyData[month].income,
+          expense: monthlyData[month].expense,
+        }));
+
+        return data.slice(-12);
+
+    } else if (view === 'monthly') {
+        return processDailyData(incomes, expenses, 30);
+    } else { // daily
+        return processDailyData(incomes, expenses, 7);
+    }
+  }, [incomes, expenses, view]);
+
+  const chartDescription = {
+    yearly: "Last 12 months",
+    monthly: "Last 30 days",
+    daily: "Last 7 days",
+  };
+
+  const ChartHeader = () => (
+    <CardHeader>
+      <div className="flex justify-between items-start">
+        <div>
+          <CardTitle>Cash Flow</CardTitle>
+          <CardDescription>{chartDescription[view]}</CardDescription>
+        </div>
+        <Tabs defaultValue={view} onValueChange={(v) => setView(v as 'yearly' | 'monthly' | 'daily')}>
+          <TabsList>
+            <TabsTrigger value="yearly">Yearly</TabsTrigger>
+            <TabsTrigger value="monthly">Monthly</TabsTrigger>
+            <TabsTrigger value="daily">Daily</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+    </CardHeader>
+  );
+  
+  const noData = chartData.length === 0 || chartData.every(d => d.income === 0 && d.expense === 0);
+
+  if (noData) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Cash Flow</CardTitle>
-          <CardDescription>Last 12 months</CardDescription>
-        </CardHeader>
+        <ChartHeader />
         <CardContent>
           <div className="h-80 flex items-center justify-center text-muted-foreground">
-            Not enough data to display chart.
+            Not enough data to display chart for this period.
           </div>
         </CardContent>
       </Card>
@@ -105,10 +184,7 @@ export function CashFlowChart({ incomes, expenses }: CashFlowChartProps) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Cash Flow</CardTitle>
-        <CardDescription>Last 12 months</CardDescription>
-      </CardHeader>
+      <ChartHeader />
       <CardContent>
         <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
           <BarChart accessibilityLayer data={chartData} margin={{ top: 20, right: 20, left: 20, bottom: 5 }}>
@@ -118,6 +194,7 @@ export function CashFlowChart({ incomes, expenses }: CashFlowChartProps) {
               tickLine={false}
               tickMargin={10}
               axisLine={false}
+              interval={view === 'monthly' ? 4 : view === 'daily' ? 0 : 'preserveStartEnd'}
             />
             <YAxis
               tickFormatter={(value) => `₹${new Intl.NumberFormat('en-IN', { notation: 'compact', compactDisplay: 'short' }).format(Number(value))}`}
