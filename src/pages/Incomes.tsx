@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -148,15 +147,19 @@ const Incomes = () => {
   const incomeCategories = ["All", ...new Set(incomes?.map(i => i.category).filter(Boolean) as string[])];
 
   return (
-    <div className="w-full py-8 px-4">
-      <Card>
+    <div className="w-full">
+      <Card className="bg-slate-900 border-slate-800 text-gray-300">
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle className="text-2xl">💰 Incomes</CardTitle>
-              <CardDescription>Manage your income sources and track your earnings.</CardDescription>
+              <CardTitle className="text-3xl font-bold flex items-center gap-2">
+                <span role="img" aria-label="money bag">💰</span> Incomes
+              </CardTitle>
+              <CardDescription className="text-gray-400">Manage your income sources and track your earnings.</CardDescription>
             </div>
-            <Button onClick={handleAddClick}><PlusCircle className="mr-2 h-4 w-4" /> Add Income</Button>
+            <Button onClick={handleAddClick} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <PlusCircle className="mr-2 h-4 w-4" /> Add Income
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -165,65 +168,69 @@ const Incomes = () => {
               placeholder="Search by source..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="max-w-sm"
+              className="max-w-sm bg-slate-800 border-slate-700 placeholder:text-gray-500 focus:ring-blue-500 focus:ring-offset-slate-900"
             />
             <div className="flex items-center gap-2 overflow-x-auto pb-2">
               {incomeCategories.map(cat => (
                 <Button 
                   key={cat} 
-                  variant={category === cat ? "default" : "outline"}
+                  variant="outline"
                   onClick={() => setCategory(cat)}
-                  className="shrink-0"
+                  className={`shrink-0 ${
+                    category === cat 
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white border-blue-600' 
+                    : 'border-slate-700 hover:bg-slate-800 text-gray-300'
+                  }`}
                 >
                   {cat}
                 </Button>
               ))}
             </div>
           </div>
-          <div className="rounded-md border">
+          <div className="rounded-md border border-slate-700">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Source</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead className="hidden md:table-cell">Category</TableHead>
-                  <TableHead className="hidden md:table-cell text-right">Date</TableHead>
+                <TableRow className="border-b-slate-700 hover:bg-slate-900">
+                  <TableHead className="text-gray-400">Source</TableHead>
+                  <TableHead className="text-right text-gray-400">Amount</TableHead>
+                  <TableHead className="hidden md:table-cell text-gray-400">Category</TableHead>
+                  <TableHead className="hidden md:table-cell text-right text-gray-400">Date</TableHead>
                   <TableHead><span className="sr-only">Actions</span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24 ml-auto" /></TableCell>
-                      <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-20" /></TableCell>
-                      <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24 ml-auto" /></TableCell>
-                      <TableCell><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                    <TableRow key={i} className="border-slate-800">
+                      <TableCell><Skeleton className="h-4 w-32 bg-slate-700" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24 ml-auto bg-slate-700" /></TableCell>
+                      <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-20 bg-slate-700" /></TableCell>
+                      <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24 ml-auto bg-slate-700" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-8 ml-auto rounded-full bg-slate-700" /></TableCell>
                     </TableRow>
                   ))
                 ) : filteredIncomes && filteredIncomes.length > 0 ? (
                   filteredIncomes.map(income => (
-                    <TableRow key={income.id}>
+                    <TableRow key={income.id} className="border-slate-800 hover:bg-slate-800/50">
                       <TableCell className="font-medium">{income.source}</TableCell>
-                      <TableCell className="text-right text-green-600 font-semibold">+₹{income.amount.toLocaleString()}</TableCell>
+                      <TableCell className="text-right text-green-500 font-semibold">+₹{income.amount.toLocaleString()}</TableCell>
                       <TableCell className="hidden md:table-cell">{income.category}</TableCell>
                       <TableCell className="hidden md:table-cell text-right">{new Date(income.income_date).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
+                            <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-slate-700 focus:bg-slate-700 data-[state=open]:bg-slate-700">
                               <span className="sr-only">Open menu</span>
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => handleEditClick(income)}>
+                          <DropdownMenuContent align="end" className="bg-slate-900 border-slate-700 text-gray-300">
+                            <DropdownMenuLabel className="border-b border-slate-700">Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => handleEditClick(income)} className="focus:bg-slate-800 focus:text-gray-200">
                               <Edit className="mr-2 h-4 w-4" />
                               <span>Edit</span>
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteClick(income)}>
+                            <DropdownMenuItem className="text-red-500 focus:text-red-500 focus:bg-slate-800" onClick={() => handleDeleteClick(income)}>
                               <Trash2 className="mr-2 h-4 w-4" />
                               <span>Delete</span>
                             </DropdownMenuItem>
@@ -233,8 +240,8 @@ const Incomes = () => {
                     </TableRow>
                   ))
                 ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
+                  <TableRow className="border-slate-800">
+                    <TableCell colSpan={5} className="h-24 text-center text-gray-400">
                       No incomes found.
                     </TableCell>
                   </TableRow>
