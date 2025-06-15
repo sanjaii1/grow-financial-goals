@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
@@ -19,8 +20,8 @@ const fetchDashboardData = async () => {
   const [debts, incomes, expenses, savingsGoals] = await Promise.all([
     supabase.from('debts').select('amount,paid_amount'),
     supabase.from('incomes').select('amount,income_date'),
-    supabase.from('expenses').select('amount,expense_date'),
-    supabase.from('savings_goals').select('current_amount,target_amount'),
+    supabase.from('expenses').select('amount,category'),
+    supabase.from('savings_goals').select('name,current_amount,target_amount'),
   ]);
 
   if (debts.error) throw new Error(debts.error.message);
