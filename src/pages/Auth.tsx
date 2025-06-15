@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -32,8 +31,6 @@ const Auth = () => {
       setUser(sessionData?.user ?? null);
       if (sessionData?.user) {
         fetchProfile(sessionData.user.id);
-        // When logged in, go to home
-        navigate("/", { replace: true });
       }
     });
 
@@ -42,7 +39,6 @@ const Auth = () => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
-        navigate("/", { replace: true });
       }
     });
 
@@ -64,9 +60,9 @@ const Auth = () => {
         toast({ title: "Login failed", description: error.message, variant: "destructive" });
       } else {
         toast({ title: "Login successful", variant: "default" });
+        navigate("/");
       }
     } else {
-      // Signup flow
       const redirectUrl = `${window.location.origin}/`;
       const { error } = await supabase.auth.signUp({
         email,
@@ -130,7 +126,12 @@ const Auth = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-full max-w-md bg-background rounded-lg shadow-lg p-6 space-y-6 animate-fade-in">
-          <h2 className="font-bold text-2xl mb-2 text-center">Profile</h2>
+          <div className="flex justify-between items-center">
+            <h2 className="font-bold text-2xl">Profile</h2>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/">Dashboard</Link>
+            </Button>
+          </div>
           <form onSubmit={handleProfileUpdate} className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-1">Email</label>
