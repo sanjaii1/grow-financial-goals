@@ -25,6 +25,7 @@ import { Trash2, Edit, PlusCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -42,6 +43,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const debtSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -209,84 +211,124 @@ const Debts = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto py-8 px-4">
+    <div className="w-full max-w-4xl mx-auto p-4 md:p-6 text-gray-300">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">💳 Debts</h1>
-        <Button asChild variant="outline"><Link to="/">Dashboard</Link></Button>
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+            <span role="img" aria-label="credit card">💳</span> Debts
+        </h1>
+        <Button asChild variant="outline" className="border-slate-700 hover:bg-slate-800 text-gray-300"><Link to="/">Dashboard</Link></Button>
       </div>
 
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogTrigger asChild>
-          <Button className="mb-8 w-full">Add New Debt</Button>
+          <Button className="mb-8 w-full bg-blue-600 hover:bg-blue-700 text-white"><PlusCircle className="mr-2 h-4 w-4" /> Add New Debt</Button>
         </DialogTrigger>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Add New Debt</DialogTitle></DialogHeader>
+        <DialogContent className="sm:max-w-[425px] bg-slate-900 border-slate-700 text-gray-300">
+          <DialogHeader>
+            <DialogTitle>Add New Debt</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Enter the details of your debt below.
+            </DialogDescription>
+          </DialogHeader>
           <Form {...addDebtForm}>
             <form onSubmit={addDebtForm.handleSubmit(onAddSubmit)} className="space-y-4">
-              <FormField control={addDebtForm.control} name="name" render={({ field }) => (<FormItem><FormLabel>Debt Name</FormLabel><FormControl><Input placeholder="e.g., Credit Card" {...field} /></FormControl><FormMessage /></FormItem>)} />
-              <FormField control={addDebtForm.control} name="amount" render={({ field }) => (<FormItem><FormLabel>Total Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 5000" {...field} /></FormControl><FormMessage /></FormItem>)} />
-              <FormField control={addDebtForm.control} name="interest_rate" render={({ field }) => (<FormItem><FormLabel>Interest Rate (%)</FormLabel><FormControl><Input type="number" placeholder="e.g., 18.9" {...field} /></FormControl><FormMessage /></FormItem>)} />
-              <FormField control={addDebtForm.control} name="due_date" render={({ field }) => (<FormItem><FormLabel>Due Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
-              <Button type="submit" disabled={addDebt.isPending}>{addDebt.isPending ? "Adding..." : "Add Debt"}</Button>
+              <FormField control={addDebtForm.control} name="name" render={({ field }) => (<FormItem><FormLabel>Debt Name</FormLabel><FormControl><Input placeholder="e.g., Credit Card" {...field} className="bg-slate-800 border-slate-700 placeholder:text-gray-500" /></FormControl><FormMessage /></FormItem>)} />
+              <FormField control={addDebtForm.control} name="amount" render={({ field }) => (<FormItem><FormLabel>Total Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 5000" {...field} className="bg-slate-800 border-slate-700 placeholder:text-gray-500" /></FormControl><FormMessage /></FormItem>)} />
+              <FormField control={addDebtForm.control} name="interest_rate" render={({ field }) => (<FormItem><FormLabel>Interest Rate (%)</FormLabel><FormControl><Input type="number" placeholder="e.g., 18.9" {...field} className="bg-slate-800 border-slate-700 placeholder:text-gray-500" /></FormControl><FormMessage /></FormItem>)} />
+              <FormField control={addDebtForm.control} name="due_date" render={({ field }) => (<FormItem><FormLabel>Due Date</FormLabel><FormControl><Input type="date" {...field} className="bg-slate-800 border-slate-700" /></FormControl><FormMessage /></FormItem>)} />
+              <Button type="submit" disabled={addDebt.isPending} className="w-full bg-blue-600 hover:bg-blue-700 text-white">{addDebt.isPending ? "Adding..." : "Add Debt"}</Button>
             </form>
           </Form>
         </DialogContent>
       </Dialog>
       
-      <h2 className="text-xl font-semibold mb-4">Your Debts</h2>
+      <h2 className="text-xl font-semibold mb-4 text-gray-200">Your Debts</h2>
       {isLoading ? (
-        <p>Loading...</p>
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i} className="bg-slate-900 border-slate-800 p-4">
+              <div className="flex flex-col md:flex-row justify-between items-start">
+                <div className="flex-grow">
+                  <Skeleton className="h-6 w-40 mb-2 bg-slate-700" />
+                  <Skeleton className="h-4 w-64 bg-slate-700" />
+                  <div className="mt-2 space-y-1">
+                    <Skeleton className="h-4 w-32 bg-slate-700" />
+                    <Skeleton className="h-4 w-28 bg-slate-700" />
+                  </div>
+                </div>
+                <div className="mt-4 md:mt-0 md:ml-8 w-full max-w-xs">
+                  <Skeleton className="h-3 w-full rounded-full bg-slate-700" />
+                  <Skeleton className="h-3 w-1/4 mt-1 ml-auto bg-slate-700" />
+                </div>
+                <div className="flex gap-2 pt-2 md:pt-0 md:pl-4 self-center md:self-auto">
+                  <Skeleton className="h-10 w-10 rounded-md bg-slate-700" />
+                  <Skeleton className="h-10 w-10 rounded-md bg-slate-700" />
+                  <Skeleton className="h-10 w-10 rounded-md bg-slate-700" />
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
       ) : debts?.length === 0 ? (
-        <div className="text-center text-muted-foreground">No debts found.</div>
+        <Card className="bg-slate-900 border-slate-800">
+            <CardContent className="p-6 text-center text-gray-400">
+                No debts found. Start by adding one.
+            </CardContent>
+        </Card>
       ) : (
         <div className="space-y-4">
           {debts?.map(debt => {
-            const paidPercentage = debt.amount > 0 ? (debt.paid_amount / debt.amount) * 100 : 0;
+            const paidPercentage = debt.amount > 0 && debt.paid_amount ? (debt.paid_amount / debt.amount) * 100 : 0;
             return (
-              <Card key={debt.id} className="relative overflow-hidden">
-                <CardContent className="pt-4 flex flex-col md:flex-row justify-between items-start">
+              <Card key={debt.id} className="bg-slate-900 border-slate-800 text-gray-300 overflow-hidden">
+                <CardContent className="p-4 flex flex-col md:flex-row justify-between items-start">
                   <div className="flex-grow">
-                    <span className="font-bold text-lg">{debt.name}</span>
-                    <div className="text-sm text-muted-foreground">
+                    <span className="font-bold text-lg text-gray-100">{debt.name}</span>
+                    <div className="text-sm text-gray-400">
                       Due: {new Date(debt.due_date).toLocaleDateString()}
                       {" | "}Interest: {debt.interest_rate ?? 0}%
                     </div>
                     <div className="mt-2">
-                      <span className="mr-2 font-semibold">Total:</span>
-                      <span>₹{debt.amount.toLocaleString()}</span>
+                      <span className="mr-2 font-semibold text-gray-400">Total:</span>
+                      <span className="text-gray-200">₹{debt.amount.toLocaleString()}</span>
                     </div>
                     <div>
-                      <span className="mr-2 font-semibold">Paid:</span>
-                      <span>₹{debt.paid_amount.toLocaleString()}</span>
+                      <span className="mr-2 font-semibold text-gray-400">Paid:</span>
+                      <span className="text-green-400">₹{(debt.paid_amount || 0).toLocaleString()}</span>
                     </div>
                   </div>
-                  <div className="mt-4 md:mt-0 md:ml-8 w-full max-w-xs">
-                    <div className="h-3 w-full bg-gray-200 rounded-full overflow-hidden">
+                  <div className="mt-4 md:mt-0 md:ml-8 w-full max-w-xs self-center">
+                    <div className="h-3 w-full bg-slate-700 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-green-500 transition-all"
                         style={{ width: `${Math.min(100, paidPercentage)}%` }}
                       />
                     </div>
-                    <div className="text-xs mt-1 text-right">
+                    <div className="text-xs mt-1 text-right text-gray-400">
                       {`${Math.round(Math.min(100, paidPercentage))}% paid`}
                     </div>
                   </div>
                   <div className="flex gap-2 pt-2 md:pt-0 md:pl-4 self-center md:self-auto">
-                    <Button variant="ghost" size="icon" onClick={() => handlePaymentClick(debt)}>
+                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-slate-800" onClick={() => handlePaymentClick(debt)}>
                         <PlusCircle className="h-5 w-5" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleEditClick(debt)}>
+                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-slate-800" onClick={() => handleEditClick(debt)}>
                       <Edit className="h-5 w-5" />
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon"><Trash2 className="h-5 w-5 text-destructive" /></Button>
+                        <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-400 hover:bg-slate-800"><Trash2 className="h-5 w-5" /></Button>
                       </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This action cannot be undone. This will permanently delete this debt.</AlertDialogDescription></AlertDialogHeader>
+                      <AlertDialogContent className="bg-slate-900 border-slate-700 text-gray-300">
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription className="text-gray-400">This action cannot be undone. This will permanently delete this debt.</AlertDialogDescription>
+                        </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => deleteDebt.mutate(debt.id)}>Delete</AlertDialogAction>
+                          <AlertDialogCancel className="border-slate-700 hover:bg-slate-800 text-gray-300">Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => deleteDebt.mutate(debt.id)} disabled={deleteDebt.isPending}>
+                            {deleteDebt.isPending ? 'Deleting...' : 'Delete'}
+                          </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>
@@ -300,15 +342,20 @@ const Debts = () => {
 
       {/* Edit Debt Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Edit Debt</DialogTitle></DialogHeader>
+        <DialogContent className="sm:max-w-[425px] bg-slate-900 border-slate-700 text-gray-300">
+            <DialogHeader>
+                <DialogTitle>Edit Debt</DialogTitle>
+                <DialogDescription className="text-gray-400">
+                    Update the details of your debt below.
+                </DialogDescription>
+            </DialogHeader>
           <Form {...editDebtForm}>
             <form onSubmit={editDebtForm.handleSubmit(onEditSubmit)} className="space-y-4">
-              <FormField control={editDebtForm.control} name="name" render={({ field }) => (<FormItem><FormLabel>Debt Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-              <FormField control={editDebtForm.control} name="amount" render={({ field }) => (<FormItem><FormLabel>Total Amount</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-              <FormField control={editDebtForm.control} name="interest_rate" render={({ field }) => (<FormItem><FormLabel>Interest Rate (%)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-              <FormField control={editDebtForm.control} name="due_date" render={({ field }) => (<FormItem><FormLabel>Due Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
-              <Button type="submit" disabled={updateDebt.isPending}>{updateDebt.isPending ? "Saving..." : "Save Changes"}</Button>
+              <FormField control={editDebtForm.control} name="name" render={({ field }) => (<FormItem><FormLabel>Debt Name</FormLabel><FormControl><Input {...field} className="bg-slate-800 border-slate-700 placeholder:text-gray-500" /></FormControl><FormMessage /></FormItem>)} />
+              <FormField control={editDebtForm.control} name="amount" render={({ field }) => (<FormItem><FormLabel>Total Amount</FormLabel><FormControl><Input type="number" {...field} className="bg-slate-800 border-slate-700 placeholder:text-gray-500" /></FormControl><FormMessage /></FormItem>)} />
+              <FormField control={editDebtForm.control} name="interest_rate" render={({ field }) => (<FormItem><FormLabel>Interest Rate (%)</FormLabel><FormControl><Input type="number" {...field} className="bg-slate-800 border-slate-700 placeholder:text-gray-500" /></FormControl><FormMessage /></FormItem>)} />
+              <FormField control={editDebtForm.control} name="due_date" render={({ field }) => (<FormItem><FormLabel>Due Date</FormLabel><FormControl><Input type="date" {...field} className="bg-slate-800 border-slate-700" /></FormControl><FormMessage /></FormItem>)} />
+              <Button type="submit" disabled={updateDebt.isPending} className="w-full bg-blue-600 hover:bg-blue-700 text-white">{updateDebt.isPending ? "Saving..." : "Save Changes"}</Button>
             </form>
           </Form>
         </DialogContent>
@@ -316,12 +363,17 @@ const Debts = () => {
       
       {/* Add Payment Dialog */}
       <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Add Payment to "{selectedDebt?.name}"</DialogTitle></DialogHeader>
+        <DialogContent className="sm:max-w-[425px] bg-slate-900 border-slate-700 text-gray-300">
+            <DialogHeader>
+                <DialogTitle>Add Payment to "{selectedDebt?.name}"</DialogTitle>
+                <DialogDescription className="text-gray-400">
+                    Enter the amount you want to pay.
+                </DialogDescription>
+            </DialogHeader>
            <Form {...paymentForm}>
             <form onSubmit={paymentForm.handleSubmit(onPaymentSubmit)} className="space-y-4">
-              <FormField control={paymentForm.control} name="amount" render={({ field }) => (<FormItem><FormLabel>Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 100" {...field} /></FormControl><FormMessage /></FormItem>)} />
-              <Button type="submit" disabled={addPayment.isPending}>{addPayment.isPending ? "Adding..." : "Add"}</Button>
+              <FormField control={paymentForm.control} name="amount" render={({ field }) => (<FormItem><FormLabel>Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 100" {...field} className="bg-slate-800 border-slate-700 placeholder:text-gray-500" /></FormControl><FormMessage /></FormItem>)} />
+              <Button type="submit" disabled={addPayment.isPending} className="w-full bg-blue-600 hover:bg-blue-700 text-white">{addPayment.isPending ? "Adding..." : "Add"}</Button>
             </form>
           </Form>
         </DialogContent>
