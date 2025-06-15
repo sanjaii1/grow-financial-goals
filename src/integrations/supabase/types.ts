@@ -45,6 +45,33 @@ export type Database = {
         }
         Relationships: []
       }
+      incomes: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          income_date: string
+          source: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          income_date: string
+          source: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          income_date?: string
+          source?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
