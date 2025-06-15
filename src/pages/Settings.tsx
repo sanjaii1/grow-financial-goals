@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -47,6 +46,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { AvatarUpload } from "@/components/AvatarUpload";
 
 const passwordFormSchema = z.object({
   currentPassword: z.string().min(1, { message: "Please enter your current password." }),
@@ -70,9 +70,8 @@ const Settings = () => {
   const [fullName, setFullName] = useState("");
   const [initialFullName, setInitialFullName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
-  const [initialAvatarUrl, setInitialAvatarUrl] = useState("");
   
-  const isProfileChanged = fullName !== initialFullName || avatarUrl !== initialAvatarUrl;
+  const isProfileChanged = fullName !== initialFullName;
 
   const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
     resolver: zodResolver(passwordFormSchema),
@@ -102,7 +101,6 @@ const Settings = () => {
           setFullName(data.full_name || "");
           setInitialFullName(data.full_name || "");
           setAvatarUrl(data.avatar_url || "");
-          setInitialAvatarUrl(data.avatar_url || "");
         }
       }
       setLoading(false);
@@ -116,7 +114,6 @@ const Settings = () => {
 
     const { error } = await supabase.from("profiles").update({
       full_name: fullName,
-      avatar_url: avatarUrl,
       updated_at: new Date().toISOString(),
     }).eq("id", session.user.id);
 
@@ -125,7 +122,6 @@ const Settings = () => {
     } else {
       toast({ title: "Profile updated successfully!" });
       setInitialFullName(fullName);
-      setInitialAvatarUrl(avatarUrl);
     }
   };
   
@@ -211,10 +207,12 @@ const Settings = () => {
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <CardContent className="pt-6 flex flex-col items-center text-center">
-              <Avatar className="w-24 h-24 mb-4">
-                <AvatarImage src={avatarUrl || `https://avatar.vercel.sh/${user.email}.png`} alt={fullName} />
-                <AvatarFallback>{fullName?.charAt(0) || user.email?.charAt(0)}</AvatarFallback>
-              </Avatar>
+              <AvatarUpload
+                session={session}
+                url={avatarUrl || `https://avatar.vercel.sh/${user.email}.png`}
+                onUrlChange={setAvatarUrl}
+                fallbackText={fullName?.charAt(0) || user.email?.charAt(0) || 'U'}
+              />
               <h2 className="text-xl font-semibold">{fullName || user.email}</h2>
               <p className="text-muted-foreground text-sm">{user.email}</p>
               <p className="text-muted-foreground text-xs mt-2">
