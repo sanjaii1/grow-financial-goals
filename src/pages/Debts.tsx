@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useForm } from "react-hook-form";
@@ -239,7 +240,7 @@ const Debts = () => {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-4 md:p-6">
+    <div className="w-full p-4 md:p-6">
       <Card>
         <CardHeader>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
