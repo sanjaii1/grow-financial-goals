@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useForm } from "react-hook-form";
@@ -106,7 +105,13 @@ const Debts = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not logged in");
       
-      const { error } = await supabase.from("debts").insert([{ ...newDebt, user_id: user.id, interest_rate: newDebt.interest_rate || null }]);
+      const debtData = {
+        ...newDebt,
+        user_id: user.id,
+        interest_rate: newDebt.interest_rate || null,
+      };
+
+      const { error } = await supabase.from("debts").insert([debtData]);
       if (error) throw new Error(error.message);
     },
     onSuccess: () => {
