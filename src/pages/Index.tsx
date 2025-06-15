@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useMemo, useState, useRef } from "react";
@@ -8,9 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { ArrowDownCircle, ArrowUpCircle, Wallet, Target, CreditCard, Calendar as CalendarIcon } from "lucide-react";
-import { SpendingByCategory } from "@/components/SpendingByCategory";
 import { SavingsPlan } from "@/components/SavingsPlan";
-import { CashFlowChart } from "@/components/CashFlowChart";
 import { RecentTransactions } from "@/components/RecentTransactions";
 import { DateRange } from "react-day-picker";
 import { format, startOfToday, endOfToday, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, parseISO, isWithinInterval } from "date-fns";
@@ -91,20 +88,22 @@ const DashboardOverview = ({ date }: { date?: DateRange }) => {
               <Skeleton className="h-4 w-1/3" />
             </CardHeader>
             <CardContent>
-              <Skeleton className="h-[300px] w-full" />
+              <div className="divide-y divide-slate-200 dark:divide-slate-800">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="flex items-center gap-4 py-3">
+                    <Skeleton className="h-9 w-9 rounded-full" />
+                    <div className="grid gap-1 flex-1">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                    <Skeleton className="h-5 w-20" />
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-6 w-1/2 mb-2" />
-              <Skeleton className="h-4 w-1/3" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-[350px] w-full rounded-full" />
-            </CardContent>
-          </Card>
+        <div className="mt-8">
           <Card>
             <CardHeader>
               <Skeleton className="h-6 w-1/2 mb-2" />
@@ -141,7 +140,7 @@ const DashboardOverview = ({ date }: { date?: DateRange }) => {
   const debtProgress = totalDebt > 0 ? (totalPaidDebt / totalDebt) * 100 : 0;
   
   const balanceProgress = totalIncome > 0 ? (balance / totalIncome) * 100 : 0;
-
+  
   const overviewData = [
     { title: "Total Income", value: totalIncome, currency: true, icon: ArrowUpCircle, iconClass: "text-green-500" },
     { title: "Total Expenses", value: totalExpenses, currency: true, icon: ArrowDownCircle, iconClass: "text-red-500" },
@@ -177,13 +176,9 @@ const DashboardOverview = ({ date }: { date?: DateRange }) => {
         ))}
       </div>
       <div className="mt-8">
-        <CashFlowChart incomes={filteredData?.incomes || []} expenses={filteredData?.expenses || []} />
-      </div>
-      <div className="mt-8">
         <RecentTransactions incomes={filteredData?.incomes || []} expenses={filteredData?.expenses || []} />
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-        <SpendingByCategory expenses={filteredData?.expenses || []} />
+      <div className="mt-8">
         <SavingsPlan savingsGoals={data?.savingsGoals || []} />
       </div>
     </div>
