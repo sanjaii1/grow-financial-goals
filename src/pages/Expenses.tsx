@@ -1,14 +1,23 @@
+
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { Session, User } from "@supabase/supabase-js";
 import { Database } from "@/integrations/supabase/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { PlusCircle } from "lucide-react";
 
 type Expense = Database["public"]["Tables"]["expenses"]["Row"];
 
@@ -34,6 +43,7 @@ const Expenses = () => {
   const navigate = useNavigate();
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
@@ -75,6 +85,7 @@ const Expenses = () => {
       setAmount("");
       setCategory("");
       setExpenseDate(new Date().toISOString().split("T")[0]);
+      setIsDialogOpen(false);
     },
     onError: (error: Error) => {
       toast({ title: "Error adding expense", description: error.message, variant: "destructive" });
@@ -108,18 +119,25 @@ const Expenses = () => {
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Expenses</h1>
-        <Button asChild variant="outline">
-          <Link to="/">Dashboard</Link>
-        </Button>
+        <div className="flex items-center gap-4">
+          <Button onClick={() => setIsDialogOpen(true)}>
+            <PlusCircle className="mr-2 h-4 w-4" /> Add Expense
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/">Dashboard</Link>
+          </Button>
+        </div>
       </div>
 
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Add New Expense</CardTitle>
-          <CardDescription>Enter the details of your expense below.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New Expense</DialogTitle>
+            <DialogDescription>
+              Enter the details of your expense below. Click add when you're done.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="grid gap-4 py-4">
             <Input
               placeholder="Description (e.g. Groceries)"
               value={description}
@@ -145,12 +163,12 @@ const Expenses = () => {
               onChange={(e) => setExpenseDate(e.target.value)}
               required
             />
-            <Button type="submit" disabled={mutation.isPending} className="md:col-span-2">
+            <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? "Adding..." : "Add Expense"}
             </Button>
           </form>
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <CardHeader>
