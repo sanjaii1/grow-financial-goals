@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "@/hooks/use-toast";
-import { Trash2, PlusCircle, MoreHorizontal, PiggyBank } from "lucide-react";
+import { Trash2, PlusCircle, MoreHorizontal, PiggyBank, Search, Filter, CalendarIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -41,7 +41,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -58,6 +58,20 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
 
 const savingsGoalSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -90,11 +104,34 @@ const Savings = () => {
   const [isAddContributionDialogOpen, setIsAddContributionDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<SavingsGoal | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState<{ startDate?: Date; endDate?: Date }>({});
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
   const { data: savingsGoals, isLoading } = useQuery<SavingsGoal[]>({
     queryKey: ["savings_goals"],
     queryFn: fetchSavingsGoals,
   });
+
+  const filteredSavingsGoals = useMemo(() => {
+    return savingsGoals?.filter((goal) => {
+      const nameMatch = goal.name.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      let dateMatch = true;
+      if (filters.startDate || filters.endDate) {
+        if (!goal.target_date) {
+          dateMatch = false;
+        } else {
+          const targetDate = new Date(goal.target_date);
+          targetDate.setMinutes(targetDate.getMinutes() + targetDate.getTimezoneOffset());
+          const startDateMatch = filters.startDate ? targetDate >= filters.startDate : true;
+          const endDateMatch = filters.endDate ? targetDate <= filters.endDate : true;
+          dateMatch = startDateMatch && endDateMatch;
+        }
+      }
+      return nameMatch && dateMatch;
+    });
+  }, [savingsGoals, searchTerm, filters]);
 
   const addSavingsGoal = useMutation({
     mutationFn: async (newGoal: z.infer<typeof savingsGoalSchema>) => {
@@ -192,6 +229,16 @@ const Savings = () => {
     }
   };
 
+  const handleFilterChange = (newFilters: Partial<typeof filters>) => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
+  };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setFilters({});
+    setIsFiltersOpen(false);
+  };
+
   return (
     <div className="w-full max-w-6xl mx-auto p-4 md:p-6">
       <Card>
@@ -229,7 +276,94 @@ const Savings = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <div className="relative w-full">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search goals by name..."
+                  className="w-full rounded-lg bg-background pl-8"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <Collapsible open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Filter className="h-4 w-4" />
+                    <span className="sr-only">Toggle filters</span>
+                  </Button>
+                </CollapsibleTrigger>
+              </Collapsible>
+            </div>
+
+            <Collapsible open={isFiltersOpen} onOpenChange={setIsFiltersOpen} className="w-full">
+              <CollapsibleContent>
+                <div className="flex flex-col md:flex-row gap-4 p-4 border rounded-lg">
+                  <div className="grid gap-2">
+                    <Label htmlFor="start-date">Target Date From</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          id="start-date"
+                          variant={"outline"}
+                          className={cn(
+                            "w-full md:w-[240px] justify-start text-left font-normal",
+                            !filters.startDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {filters.startDate ? format(filters.startDate, "PPP") : <span>Pick a start date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={filters.startDate}
+                          onSelect={(date) => handleFilterChange({ startDate: date })}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="end-date">Target Date To</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          id="end-date"
+                          variant={"outline"}
+                          className={cn(
+                            "w-full md:w-[240px] justify-start text-left font-normal",
+                            !filters.endDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {filters.endDate ? format(filters.endDate, "PPP") : <span>Pick an end date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={filters.endDate}
+                          onSelect={(date) => handleFilterChange({ endDate: date })}
+                          disabled={(date) =>
+                            filters.startDate ? date < filters.startDate : false
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="flex items-end">
+                    <Button onClick={clearFilters} variant="ghost">Clear Filters</Button>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+          <div className="rounded-md border mt-4">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -255,14 +389,14 @@ const Savings = () => {
                       <TableCell><Skeleton className="h-8 w-8 ml-auto rounded-md" /></TableCell>
                     </TableRow>
                   ))
-                ) : savingsGoals?.length === 0 ? (
+                ) : filteredSavingsGoals?.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="h-24 text-center">
-                      No savings goals found. Start by adding one.
+                      No savings goals found.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  savingsGoals?.map(goal => {
+                  filteredSavingsGoals?.map(goal => {
                     const progress = goal.target_amount > 0 ? (goal.current_amount / goal.target_amount) * 100 : 0;
                     const remainingAmount = goal.target_amount - goal.current_amount;
                     return (

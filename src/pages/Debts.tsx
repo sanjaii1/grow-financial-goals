@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useForm } from "react-hook-form";
@@ -23,7 +22,7 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "@/hooks/use-toast";
-import { Trash2, Edit, PlusCircle, MoreHorizontal } from "lucide-react";
+import { Trash2, Edit, PlusCircle, MoreHorizontal, Search, Filter, CalendarIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -42,7 +41,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -60,6 +59,20 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
 
 const debtSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -99,11 +112,28 @@ const Debts = () => {
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState<{ startDate?: Date; endDate?: Date }>({});
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
   const { data: debts, isLoading } = useQuery<Debt[]>({
     queryKey: ["debts"],
     queryFn: fetchDebts,
   });
+
+  const filteredDebts = useMemo(() => {
+    return debts?.filter((debt) => {
+      const nameMatch = debt.name.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const debtDueDate = new Date(debt.due_date);
+      debtDueDate.setMinutes(debtDueDate.getMinutes() + debtDueDate.getTimezoneOffset());
+      
+      const startDateMatch = filters.startDate ? debtDueDate >= filters.startDate : true;
+      const endDateMatch = filters.endDate ? debtDueDate <= filters.endDate : true;
+      
+      return nameMatch && startDateMatch && endDateMatch;
+    });
+  }, [debts, searchTerm, filters]);
 
   const addDebtForm = useForm<z.infer<typeof debtSchema>>({
     resolver: zodResolver(debtSchema),
@@ -239,6 +269,16 @@ const Debts = () => {
     }
   };
 
+  const handleFilterChange = (newFilters: Partial<typeof filters>) => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
+  };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setFilters({});
+    setIsFiltersOpen(false);
+  };
+
   return (
     <div className="w-full p-4 md:p-6">
       <Card>
@@ -277,7 +317,95 @@ const Debts = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <div className="relative w-full">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search debts by name..."
+                  className="w-full rounded-lg bg-background pl-8"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <Collapsible open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Filter className="h-4 w-4" />
+                    <span className="sr-only">Toggle filters</span>
+                  </Button>
+                </CollapsibleTrigger>
+              </Collapsible>
+            </div>
+
+            <Collapsible open={isFiltersOpen} onOpenChange={setIsFiltersOpen} className="w-full">
+              <CollapsibleContent>
+                <div className="flex flex-col md:flex-row gap-4 p-4 border rounded-lg">
+                  <div className="grid gap-2">
+                    <Label htmlFor="start-date">Due Date From</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          id="start-date"
+                          variant={"outline"}
+                          className={cn(
+                            "w-full md:w-[240px] justify-start text-left font-normal",
+                            !filters.startDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {filters.startDate ? format(filters.startDate, "PPP") : <span>Pick a start date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={filters.startDate}
+                          onSelect={(date) => handleFilterChange({ startDate: date })}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="end-date">Due Date To</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          id="end-date"
+                          variant={"outline"}
+                          className={cn(
+                            "w-full md:w-[240px] justify-start text-left font-normal",
+                            !filters.endDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {filters.endDate ? format(filters.endDate, "PPP") : <span>Pick an end date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={filters.endDate}
+                          onSelect={(date) => handleFilterChange({ endDate: date })}
+                          disabled={(date) =>
+                            filters.startDate ? date < filters.startDate : false
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="flex items-end">
+                    <Button onClick={clearFilters} variant="ghost">Clear Filters</Button>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+
+          <div className="rounded-md border mt-4">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -305,14 +433,14 @@ const Debts = () => {
                       <TableCell><Skeleton className="h-8 w-8 ml-auto rounded-md" /></TableCell>
                     </TableRow>
                   ))
-                ) : debts?.length === 0 ? (
+                ) : filteredDebts?.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="h-24 text-center">
-                      No debts found. Start by adding one.
+                      No debts found.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  debts?.map(debt => {
+                  filteredDebts?.map(debt => {
                     const paidPercentage = debt.amount > 0 && debt.paid_amount ? (debt.paid_amount / debt.amount) * 100 : 0;
                     const remainingAmount = debt.amount - (debt.paid_amount || 0);
                     return (
