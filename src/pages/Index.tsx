@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
@@ -7,11 +6,11 @@ import { Session } from "@supabase/supabase-js";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { IncomeExpenseChart } from "@/components/IncomeExpenseChart";
 import { cn } from "@/lib/utils";
 import { ArrowDownCircle, ArrowUpCircle, Wallet, Target, CreditCard } from "lucide-react";
 import { SpendingByCategory } from "@/components/SpendingByCategory";
 import { SavingsPlan } from "@/components/SavingsPlan";
+import { CashFlowChart } from "@/components/CashFlowChart";
 
 const fetchDashboardData = async () => {
   const { data: { user } } = await supabase.auth.getUser();
@@ -20,7 +19,7 @@ const fetchDashboardData = async () => {
   const [debts, incomes, expenses, savingsGoals] = await Promise.all([
     supabase.from('debts').select('amount,paid_amount'),
     supabase.from('incomes').select('amount,income_date'),
-    supabase.from('expenses').select('amount,category'),
+    supabase.from('expenses').select('amount,category,expense_date'),
     supabase.from('savings_goals').select('name,current_amount,target_amount'),
   ]);
 
@@ -54,6 +53,17 @@ const DashboardOverview = () => {
               <CardContent><Skeleton className="h-8 w-1/2" /></CardContent>
             </Card>
           ))}
+        </div>
+        <div className="mt-8">
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-1/2 mb-2" />
+              <Skeleton className="h-4 w-1/3" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-[300px] w-full" />
+            </CardContent>
+          </Card>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
           <Card>
@@ -121,6 +131,9 @@ const DashboardOverview = () => {
             </CardContent>
           </Card>
         ))}
+      </div>
+      <div className="mt-8">
+        <CashFlowChart incomes={data?.incomes || []} expenses={data?.expenses || []} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
         <SpendingByCategory expenses={data?.expenses || []} />

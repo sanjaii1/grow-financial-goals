@@ -1,5 +1,5 @@
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ReferenceLine, Legend, Tooltip } from "recharts"
 import {
   Card,
   CardContent,
@@ -32,7 +32,7 @@ type Expense = {
   expense_date: string;
 }
 
-interface IncomeExpenseChartProps {
+interface CashFlowChartProps {
   incomes: Income[];
   expenses: Expense[];
 }
@@ -48,11 +48,12 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export function IncomeExpenseChart({ incomes, expenses }: IncomeExpenseChartProps) {
+export function CashFlowChart({ incomes, expenses }: CashFlowChartProps) {
   const chartData: ChartData[] = useMemo(() => {
     const monthlyData: { [key: string]: { income: number; expense: number } } = {};
 
     incomes.forEach(income => {
+      if (!income.income_date) return;
       const month = format(parseISO(income.income_date), "MMM yyyy");
       if (!monthlyData[month]) {
         monthlyData[month] = { income: 0, expense: 0 };
@@ -61,31 +62,31 @@ export function IncomeExpenseChart({ incomes, expenses }: IncomeExpenseChartProp
     });
 
     expenses.forEach(expense => {
+      if (!expense.expense_date) return;
       const month = format(parseISO(expense.expense_date), "MMM yyyy");
       if (!monthlyData[month]) {
         monthlyData[month] = { income: 0, expense: 0 };
       }
-      monthlyData[month].expense += expense.amount;
+      monthlyData[month].expense -= expense.amount;
     });
 
     const sortedMonths = Object.keys(monthlyData).sort((a, b) => {
-      // Correctly sort by parsing the 'MMM yyyy' string
       return new Date(a).getTime() - new Date(b).getTime();
     });
     
     return sortedMonths.map(month => ({
-      month,
+      month: month.slice(0, 3),
       income: monthlyData[month].income,
       expense: monthlyData[month].expense,
-    })).slice(-6); // Show last 6 months
+    })).slice(-12);
   }, [incomes, expenses]);
 
   if (chartData.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Income vs. Expense</CardTitle>
-          <CardDescription>Last 6 months</CardDescription>
+          <CardTitle>Cash Flow</CardTitle>
+          <CardDescription>Last 12 months</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="h-80 flex items-center justify-center text-muted-foreground">
@@ -99,27 +100,36 @@ export function IncomeExpenseChart({ incomes, expenses }: IncomeExpenseChartProp
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Income vs. Expense</CardTitle>
-        <CardDescription>Last 6 months</CardDescription>
+        <CardTitle>Cash Flow</CardTitle>
+        <CardDescription>Last 12 months</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
-          <BarChart accessibilityLayer data={chartData}>
+          <BarChart accessibilityLayer data={chartData} margin={{ top: 20, right: 20, left: 20, bottom: 5 }}>
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="month"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
-              tickFormatter={(value) => value.slice(0, 3)}
             />
-            <YAxis />
+            <YAxis
+              tickFormatter={(value) => `₹${new Intl.NumberFormat('en-IN', { notation: 'compact', compactDisplay: 'short' }).format(Math.abs(Number(value)))}`}
+              axisLine={false}
+              tickLine={false}
+              width={60}
+            />
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent />}
+              content={<ChartTooltipContent
+                  formatter={(value) => `₹${Math.abs(Number(value)).toLocaleString()}`}
+                  indicator="dot"
+              />}
             />
-            <Bar dataKey="income" fill="var(--color-income)" radius={4} />
-            <Bar dataKey="expense" fill="var(--color-expense)" radius={4} />
+            <Legend />
+            <ReferenceLine y={0} stroke="hsl(var(--border))" />
+            <Bar dataKey="income" fill="var(--color-income)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="expense" fill="var(--color-expense)" radius={[0, 0, 4, 4]} />
           </BarChart>
         </ChartContainer>
       </CardContent>
