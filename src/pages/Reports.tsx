@@ -8,9 +8,8 @@ import { Database } from "@/integrations/supabase/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ColoredProgress } from "@/components/ColoredProgress";
-import { ChartBar, TrendingUp, TrendingDown, CalendarDays } from "lucide-react";
+import { ChartBar, TrendingUp, TrendingDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CashFlowChart } from "@/components/CashFlowChart";
 
 type Expense = Database["public"]["Tables"]["expenses"]["Row"];
 type Income = Database["public"]["Tables"]["incomes"]["Row"];
@@ -124,10 +123,9 @@ const Reports = () => {
             <Card>
                 <CardContent className="pt-6">
                     <Tabs defaultValue="spending">
-                        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3">
+                        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2">
                             <TabsTrigger value="spending"><TrendingDown className="mr-2 h-4 w-4" />Spending Analysis</TabsTrigger>
                             <TabsTrigger value="income"><TrendingUp className="mr-2 h-4 w-4" />Income Analysis</TabsTrigger>
-                            <TabsTrigger value="comparison"><CalendarDays className="mr-2 h-4 w-4" />Monthly Comparison</TabsTrigger>
                         </TabsList>
                         
                         <TabsContent value="spending" className="mt-6">
@@ -187,14 +185,6 @@ const Reports = () => {
                                 <div className="flex items-center justify-center h-24 border-2 border-dashed rounded-lg">
                                     <p className="text-muted-foreground">No income data available.</p>
                                 </div>
-                            )}
-                        </TabsContent>
-                        
-                        <TabsContent value="comparison" className="mt-6">
-                           {isLoading ? (
-                                <Skeleton className="h-[450px] w-full" />
-                            ) : (
-                                <CashFlowChart incomes={incomes || []} expenses={expenses || []} />
                             )}
                         </TabsContent>
                     </Tabs>

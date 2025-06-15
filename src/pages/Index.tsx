@@ -223,12 +223,12 @@ const Index = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <div className="flex items-center gap-4">
+        <div className="w-full md:w-auto flex items-center gap-4">
           <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-[240px] justify-start text-left font-normal">
+              <Button variant="outline" className="w-full md:w-[240px] justify-start text-left font-normal">
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 <span>
                   {period === "custom" && date?.from
