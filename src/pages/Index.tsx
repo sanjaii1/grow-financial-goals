@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
@@ -7,6 +8,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { IncomeExpenseChart } from "@/components/IncomeExpenseChart";
+import { cn } from "@/lib/utils";
+import { ArrowDownCircle, ArrowUpCircle, Wallet, Target } from "lucide-react";
 
 const fetchDashboardData = async () => {
   const { data: { user } } = await supabase.auth.getUser();
@@ -63,18 +66,16 @@ const DashboardOverview = () => {
     );
   }
 
-  const totalDebt = data?.debts.reduce((acc, debt) => acc + debt.amount, 0) || 0;
-  const totalPaid = data?.debts.reduce((acc, debt) => acc + (debt.paid_amount || 0), 0) || 0;
-  const remainingDebt = totalDebt - totalPaid;
   const totalIncome = data?.incomes.reduce((acc, income) => acc + income.amount, 0) || 0;
   const totalExpenses = data?.expenses.reduce((acc, expense) => acc + expense.amount, 0) || 0;
+  const balance = totalIncome - totalExpenses;
   const totalSaved = data?.savingsGoals.reduce((acc, goal) => acc + goal.current_amount, 0) || 0;
 
   const overviewData = [
-    { title: "Remaining Debt", value: remainingDebt, currency: true },
-    { title: "Total Income", value: totalIncome, currency: true },
-    { title: "Total Expenses", value: totalExpenses, currency: true },
-    { title: "Total Saved", value: totalSaved, currency: true },
+    { title: "Total Income", value: totalIncome, currency: true, icon: ArrowUpCircle, iconClass: "text-green-500" },
+    { title: "Total Expenses", value: totalExpenses, currency: true, icon: ArrowDownCircle, iconClass: "text-red-500" },
+    { title: "Balance", value: balance, currency: true, icon: Wallet, iconClass: "text-blue-500" },
+    { title: "Total Saved", value: totalSaved, currency: true, icon: Target, iconClass: "text-purple-500" },
   ];
 
   return (
@@ -83,8 +84,9 @@ const DashboardOverview = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {overviewData.map((item, index) => (
           <Card key={index} className="animate-scale-in" style={{ animationDelay: `${index * 100}ms` }}>
-            <CardHeader>
-              <CardTitle className="text-base font-medium text-muted-foreground">{item.title}</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+              <CardTitle className="text-sm font-medium text-muted-foreground">{item.title}</CardTitle>
+              <item.icon className={cn("h-5 w-5", item.iconClass)} />
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">
