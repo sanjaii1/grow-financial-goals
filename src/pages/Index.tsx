@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
@@ -9,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { IncomeExpenseChart } from "@/components/IncomeExpenseChart";
 import { cn } from "@/lib/utils";
-import { ArrowDownCircle, ArrowUpCircle, Wallet, Target } from "lucide-react";
+import { ArrowDownCircle, ArrowUpCircle, Wallet, Target, CreditCard } from "lucide-react";
 
 const fetchDashboardData = async () => {
   const { data: { user } } = await supabase.auth.getUser();
@@ -45,8 +44,8 @@ const DashboardOverview = () => {
     return (
       <div className="mb-8">
         <h2 className="text-2xl font-bold mb-4">Financial Overview</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {[...Array(4)].map((_, i) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+          {[...Array(5)].map((_, i) => (
             <Card key={i}>
               <CardHeader><Skeleton className="h-6 w-3/4" /></CardHeader>
               <CardContent><Skeleton className="h-8 w-1/2" /></CardContent>
@@ -70,18 +69,20 @@ const DashboardOverview = () => {
   const totalExpenses = data?.expenses.reduce((acc, expense) => acc + expense.amount, 0) || 0;
   const balance = totalIncome - totalExpenses;
   const totalSaved = data?.savingsGoals.reduce((acc, goal) => acc + goal.current_amount, 0) || 0;
+  const remainingDebt = data?.debts.reduce((acc, debt) => acc + (debt.amount - (debt.paid_amount || 0)), 0) || 0;
 
   const overviewData = [
     { title: "Total Income", value: totalIncome, currency: true, icon: ArrowUpCircle, iconClass: "text-green-500" },
     { title: "Total Expenses", value: totalExpenses, currency: true, icon: ArrowDownCircle, iconClass: "text-red-500" },
     { title: "Balance", value: balance, currency: true, icon: Wallet, iconClass: "text-blue-500" },
+    { title: "Remaining Debt", value: remainingDebt, currency: true, icon: CreditCard, iconClass: "text-orange-500" },
     { title: "Total Saved", value: totalSaved, currency: true, icon: Target, iconClass: "text-purple-500" },
   ];
 
   return (
     <div className="mb-8">
       <h2 className="text-2xl font-bold mb-4">Financial Overview</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         {overviewData.map((item, index) => (
           <Card key={index} className="animate-scale-in" style={{ animationDelay: `${index * 100}ms` }}>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
