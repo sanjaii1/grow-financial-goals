@@ -7,6 +7,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarFooter,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import {
   Home,
@@ -53,6 +54,8 @@ const NavButton = ({ to, children, className }: { to: string, children: React.Re
 
 export function AppSidebar() {
   const navigate = useNavigate();
+  const { state, isMobile } = useSidebar();
+  const isCollapsed = state === "collapsed";
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -67,8 +70,12 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-r bg-sidebar">
       <SidebarHeader className="flex items-center gap-2 p-4">
-        <TrendingUp className="h-6 w-6 text-primary" />
-        <h2 className="text-xl font-bold text-primary">Financial Goals</h2>
+        {(!isCollapsed || isMobile) && (
+          <>
+            <TrendingUp className="h-6 w-6 text-primary" />
+            <h2 className="text-xl font-bold text-primary">Financial Goals</h2>
+          </>
+        )}
       </SidebarHeader>
       <SidebarContent className="flex-1">
         <SidebarMenu>
