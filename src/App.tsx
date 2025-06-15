@@ -12,29 +12,32 @@ import Incomes from "./pages/Incomes";
 import Expenses from "./pages/Expenses";
 import Savings from "./pages/Savings";
 import { AppLayout } from "./layouts/AppLayout";
+import { ThemeProvider } from "./components/ThemeProvider";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route element={<AppLayout />}>
-            <Route path="/" element={<Index />} />
-            <Route path="/debts" element={<Debts />} />
-            <Route path="/incomes" element={<Incomes />} />
-            <Route path="/expenses" element={<Expenses />} />
-            <Route path="/savings" element={<Savings />} />
-          </Route>
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/debts" element={<Debts />} />
+              <Route path="/incomes" element={<Incomes />} />
+              <Route path="/expenses" element={<Expenses />} />
+              <Route path="/savings" element={<Savings />} />
+            </Route>
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

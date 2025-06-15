@@ -10,13 +10,14 @@ import {
 } from "@/components/ui/sidebar";
 import {
   LayoutDashboard,
-  CreditCard,
   Banknote,
   ShoppingCart,
+  CreditCard,
   PiggyBank,
   User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "./ThemeToggle";
 
 const menuItems = [
   {
@@ -88,6 +89,9 @@ export function AppSidebar() {
             </NavButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <div className="flex justify-center p-2">
+            <ThemeToggle />
+        </div>
       </SidebarFooter>
     </Sidebar>
   );

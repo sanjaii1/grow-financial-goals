@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
@@ -82,7 +83,7 @@ const DashboardOverview = () => {
       <h2 className="text-2xl font-bold mb-4">Financial Overview</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {overviewData.map((item, index) => (
-          <Card key={index}>
+          <Card key={index} className="animate-scale-in" style={{ animationDelay: `${index * 100}ms` }}>
             <CardHeader>
               <CardTitle className="text-base font-medium text-muted-foreground">{item.title}</CardTitle>
             </CardHeader>
@@ -113,28 +114,28 @@ const Index = () => {
       <DashboardOverview />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="p-6 bg-card rounded-lg border">
+        <div className="p-6 bg-card rounded-lg border animate-scale-in" style={{ animationDelay: '500ms' }}>
           <h2 className="text-xl font-semibold mb-2">Incomes</h2>
           <p className="text-muted-foreground mb-4">Track your sources of income.</p>
           <Button asChild>
             <Link to="/incomes">Go to Incomes</Link>
           </Button>
         </div>
-        <div className="p-6 bg-card rounded-lg border">
+        <div className="p-6 bg-card rounded-lg border animate-scale-in" style={{ animationDelay: '600ms' }}>
           <h2 className="text-xl font-semibold mb-2">Expenses</h2>
           <p className="text-muted-foreground mb-4">Track and categorize your spending.</p>
           <Button asChild>
             <Link to="/expenses">Go to Expenses</Link>
           </Button>
         </div>
-        <div className="p-6 bg-card rounded-lg border">
+        <div className="p-6 bg-card rounded-lg border animate-scale-in" style={{ animationDelay: '700ms' }}>
           <h2 className="text-xl font-semibold mb-2">Debts</h2>
           <p className="text-muted-foreground mb-4">Manage your outstanding debts.</p>
           <Button asChild>
             <Link to="/debts">Go to Debts</Link>
           </Button>
         </div>
-        <div className="p-6 bg-card rounded-lg border">
+        <div className="p-6 bg-card rounded-lg border animate-scale-in" style={{ animationDelay: '800ms' }}>
           <h2 className="text-xl font-semibold mb-2">Savings Goals</h2>
           <p className="text-muted-foreground mb-4">Set and track your savings goals.</p>
           <Button asChild>

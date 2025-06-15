@@ -55,7 +55,7 @@ export function AppLayout() {
               {/* Can add search or other header items here */}
             </div>
           </header>
-          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 animate-fade-in">
             <Outlet />
           </main>
         </div>
