@@ -198,7 +198,7 @@ export function CashFlowChart({ incomes, expenses }: CashFlowChartProps) {
           <BarChart 
             accessibilityLayer 
             data={chartData} 
-            margin={isMobile ? { top: 10, right: 10, left: 0, bottom: 0 } : { top: 20, right: 20, left: 20, bottom: 5 }}
+            margin={isMobile ? { top: 10, right: 10, left: -15, bottom: 0 } : { top: 20, right: 20, left: 20, bottom: 5 }}
           >
             <CartesianGrid vertical={false} />
             <XAxis
@@ -217,7 +217,7 @@ export function CashFlowChart({ incomes, expenses }: CashFlowChartProps) {
               tickFormatter={(value) => `₹${new Intl.NumberFormat('en-IN', { notation: 'compact', compactDisplay: 'short' }).format(Number(value))}`}
               axisLine={false}
               tickLine={false}
-              width={isMobile ? 45 : 60}
+              width={isMobile ? 50 : 60}
               fontSize={isMobile ? 10 : 12}
             />
             <ChartTooltip
@@ -241,3 +241,4 @@ export function CashFlowChart({ incomes, expenses }: CashFlowChartProps) {
     </Card>
   )
 }
+
