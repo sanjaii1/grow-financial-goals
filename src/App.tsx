@@ -11,6 +11,7 @@ import Debts from "./pages/Debts";
 import Incomes from "./pages/Incomes";
 import Expenses from "./pages/Expenses";
 import Savings from "./pages/Savings";
+import { AppLayout } from "./layouts/AppLayout";
 
 const queryClient = new QueryClient();
 
@@ -21,12 +22,14 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/debts" element={<Debts />} />
-          <Route path="/incomes" element={<Incomes />} />
-          <Route path="/expenses" element={<Expenses />} />
-          <Route path="/savings" element={<Savings />} />
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<Index />} />
+            <Route path="/debts" element={<Debts />} />
+            <Route path="/incomes" element={<Incomes />} />
+            <Route path="/expenses" element={<Expenses />} />
+            <Route path="/savings" element={<Savings />} />
+          </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
