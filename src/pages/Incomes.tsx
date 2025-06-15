@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -171,21 +170,19 @@ const Incomes = () => {
 
   return (
     <div className="w-full">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <span role="img" aria-label="money bag">💰</span> Incomes
+          </h1>
+          <p className="text-muted-foreground">Manage your income sources and track your earnings.</p>
+        </div>
+        <Button onClick={handleAddClick}>
+          <PlusCircle className="mr-2 h-4 w-4" /> Add Income
+        </Button>
+      </div>
       <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="text-3xl font-bold flex items-center gap-2">
-                <span role="img" aria-label="money bag">💰</span> Incomes
-              </CardTitle>
-              <CardDescription>Manage your income sources and track your earnings.</CardDescription>
-            </div>
-            <Button onClick={handleAddClick}>
-              <PlusCircle className="mr-2 h-4 w-4" /> Add Income
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <div className="flex justify-between items-center mb-4">
             <div className="relative w-full max-w-sm">
               <Input
