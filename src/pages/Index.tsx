@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useMemo, useState, useRef } from "react";
@@ -272,10 +271,6 @@ const Index = () => {
                 </Popover>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          <Button asChild variant="outline">
-            <Link to="/auth">Profile</Link>
-          </Button>
         </div>
       </div>
 
