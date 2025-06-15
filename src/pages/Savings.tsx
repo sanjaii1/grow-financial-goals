@@ -274,8 +274,8 @@ const Savings = () => {
         </Dialog>
       </div>
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col gap-4">
+        <CardContent className="p-0 pt-6 sm:p-6">
+          <div className="flex flex-col gap-4 px-4 sm:px-0">
             <div className="flex flex-col sm:flex-row items-center gap-2">
               <div className="relative w-full">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -362,7 +362,7 @@ const Savings = () => {
               </CollapsibleContent>
             </Collapsible>
           </div>
-          <div className="rounded-md border mt-4 overflow-auto">
+          <div className="rounded-md border mt-4">
             <Table>
               <TableHeader>
                 <TableRow>
