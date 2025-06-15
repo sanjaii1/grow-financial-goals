@@ -92,7 +92,13 @@ const Incomes = () => {
       } else { // Creating
         const { error } = await supabase
           .from("incomes")
-          .insert([{ ...income, user_id: authData.user.id }]);
+          .insert([{
+            source: income.source,
+            amount: income.amount,
+            income_date: income.income_date,
+            category: income.category,
+            user_id: authData.user.id
+          }]);
         if (error) throw new Error(error.message);
       }
     },
@@ -179,9 +185,9 @@ const Incomes = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Source</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="hidden md:table-cell">Category</TableHead>
+                  <TableHead className="hidden md:table-cell text-right">Date</TableHead>
                   <TableHead><span className="sr-only">Actions</span></TableHead>
                 </TableRow>
               </TableHeader>
@@ -190,20 +196,20 @@ const Incomes = () => {
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
                       <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-8 w-8" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24 ml-auto" /></TableCell>
+                      <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24 ml-auto" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                     </TableRow>
                   ))
                 ) : filteredIncomes && filteredIncomes.length > 0 ? (
                   filteredIncomes.map(income => (
                     <TableRow key={income.id}>
                       <TableCell className="font-medium">{income.source}</TableCell>
-                      <TableCell className="text-green-600 font-semibold">+₹{income.amount.toLocaleString()}</TableCell>
-                      <TableCell>{income.category}</TableCell>
-                      <TableCell>{new Date(income.income_date).toLocaleDateString()}</TableCell>
-                      <TableCell>
+                      <TableCell className="text-right text-green-600 font-semibold">+₹{income.amount.toLocaleString()}</TableCell>
+                      <TableCell className="hidden md:table-cell">{income.category}</TableCell>
+                      <TableCell className="hidden md:table-cell text-right">{new Date(income.income_date).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="h-8 w-8 p-0">
@@ -256,4 +262,3 @@ const Incomes = () => {
 };
 
 export default Incomes;
-
