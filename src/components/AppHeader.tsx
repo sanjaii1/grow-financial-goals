@@ -13,7 +13,7 @@ export function AppHeader() {
         {((isCollapsed && !isMobile) || (isMobile && !openMobile)) && (
           <div className="flex items-center gap-2 animate-fade-in">
             <TrendingUp className="h-6 w-6 text-primary" />
-            <h2 className="text-xl font-bold text-primary">Financial Goals</h2>
+            <h2 className="text-xl font-bold text-primary">Grow</h2>
           </div>
         )}
       </div>

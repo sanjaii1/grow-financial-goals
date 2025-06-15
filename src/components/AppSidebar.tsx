@@ -73,7 +73,7 @@ export function AppSidebar() {
         {(!isCollapsed || isMobile) && (
           <>
             <TrendingUp className="h-6 w-6 text-primary" />
-            <h2 className="text-xl font-bold text-primary">Financial Goals</h2>
+            <h2 className="text-xl font-bold text-primary">Grow</h2>
           </>
         )}
       </SidebarHeader>
