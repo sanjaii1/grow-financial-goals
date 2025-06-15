@@ -1,5 +1,4 @@
 
-```tsx
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { TrendingUp } from "lucide-react";
 
@@ -21,4 +20,3 @@ export function AppHeader() {
     </header>
   );
 }
-```
