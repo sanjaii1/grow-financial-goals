@@ -1,4 +1,3 @@
-
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ReferenceLine, Legend, Tooltip } from "recharts"
 import {
   Card,
@@ -40,11 +39,17 @@ interface CashFlowChartProps {
 const chartConfig = {
   income: {
     label: "Income",
-    color: "hsl(var(--chart-1))",
+    theme: {
+      light: "hsl(145 63% 49%)",
+      dark: "hsl(145 58% 59%)",
+    },
   },
   expense: {
     label: "Expense",
-    color: "hsl(var(--chart-2))",
+    theme: {
+      light: "hsl(0 84% 60%)",
+      dark: "hsl(0 91% 71%)",
+    },
   },
 } satisfies ChartConfig
 
