@@ -27,6 +27,34 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+
+const passwordFormSchema = z.object({
+  password: z.string().min(8, { message: "Password must be at least 8 characters." }),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
 
 const Settings = () => {
   const { toast } = useToast();
@@ -35,6 +63,7 @@ const Settings = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
 
   // Form state
   const [fullName, setFullName] = useState("");
@@ -43,6 +72,14 @@ const Settings = () => {
   const [initialAvatarUrl, setInitialAvatarUrl] = useState("");
   
   const isProfileChanged = fullName !== initialFullName || avatarUrl !== initialAvatarUrl;
+
+  const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
+    resolver: zodResolver(passwordFormSchema),
+    defaultValues: {
+      password: "",
+      confirmPassword: "",
+    },
+  });
 
   useEffect(() => {
     const fetchSessionAndProfile = async () => {
@@ -90,6 +127,24 @@ const Settings = () => {
     }
   };
   
+  const handlePasswordUpdate = async (values: z.infer<typeof passwordFormSchema>) => {
+    const { error } = await supabase.auth.updateUser({
+      password: values.password,
+    });
+
+    if (error) {
+      toast({
+        title: "Password update failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({ title: "Password updated successfully!" });
+      passwordForm.reset();
+      setIsPasswordDialogOpen(false);
+    }
+  };
+
   const handleDeleteAccount = async () => {
     if (!session) {
       toast({ title: "Error", description: "You must be logged in to delete your account.", variant: "destructive" });
@@ -135,10 +190,57 @@ const Settings = () => {
               <p className="text-muted-foreground text-xs mt-2">
                 Member since {new Date(user.created_at).toLocaleDateString()}
               </p>
-              <Button variant="outline" className="mt-4 w-full">
-                <KeyRound className="mr-2 h-4 w-4" />
-                Change Password
-              </Button>
+              <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="mt-4 w-full">
+                    <KeyRound className="mr-2 h-4 w-4" />
+                    Change Password
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Change Password</DialogTitle>
+                  </DialogHeader>
+                  <Form {...passwordForm}>
+                    <form onSubmit={passwordForm.handleSubmit(handlePasswordUpdate)} className="space-y-4 pt-4">
+                      <FormField
+                        control={passwordForm.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>New Password</FormLabel>
+                            <FormControl>
+                              <Input placeholder="••••••••" type="password" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={passwordForm.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Confirm New Password</FormLabel>
+                            <FormControl>
+                              <Input placeholder="••••••••" type="password" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button type="button" variant="outline">Cancel</Button>
+                        </DialogClose>
+                        <Button type="submit" disabled={passwordForm.formState.isSubmitting}>
+                          {passwordForm.formState.isSubmitting ? "Saving..." : "Save Changes"}
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
         </div>
