@@ -25,7 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { PlusCircle, Edit, Trash2, MoreHorizontal } from "lucide-react";
+import { PlusCircle, Edit, Trash2, MoreHorizontal, Filter, Calendar as CalendarIcon, Search } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -42,6 +42,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+
 
 type Expense = Database["public"]["Tables"]["expenses"]["Row"];
 
@@ -84,6 +96,10 @@ const Expenses = () => {
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
+
+  const [showFilters, setShowFilters] = useState(true);
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
 
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
@@ -210,7 +226,14 @@ const Expenses = () => {
       expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       expense.category.toLowerCase().includes(searchTerm.toLowerCase());
     const categoryMatch = categoryFilter === 'All' || expense.category === categoryFilter;
-    return searchMatch && categoryMatch;
+    
+    if (!expense.expense_date) return false;
+    const expenseDateObj = new Date(expense.expense_date);
+    
+    const startDateMatch = !startDate || expenseDateObj >= startDate;
+    const endDateMatch = !endDate || expenseDateObj <= endDate;
+    
+    return searchMatch && categoryMatch && startDateMatch && endDateMatch;
   });
 
   const expenseCategories = ["All", ...new Set(expenses?.map(e => e.category).filter(Boolean) as string[])];
@@ -233,26 +256,101 @@ const Expenses = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                <Input 
-                    placeholder="Search by description or category..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="max-w-sm"
+            <div className="flex justify-between items-center mb-4">
+              <div className="relative w-full max-w-sm">
+                <Input
+                  placeholder="Search expenses..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
                 />
-              <div className="flex items-center gap-2 overflow-x-auto pb-2">
-                {expenseCategories.map(cat => (
-                  <Button 
-                    key={cat} 
-                    variant={categoryFilter === cat ? "default" : "outline"}
-                    onClick={() => setCategoryFilter(cat)}
-                    className="shrink-0"
-                  >
-                    {cat}
-                  </Button>
-                ))}
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                  <Search className="h-5 w-5 text-muted-foreground" />
+                </span>
               </div>
+              <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
+                  <Filter className="mr-2 h-4 w-4" />
+                  {showFilters ? "Hide" : "Show"} Filters
+              </Button>
             </div>
+            
+            {showFilters && (
+              <Card className="mb-4 bg-muted/50">
+                  <CardContent className="pt-6">
+                      <div className="grid sm:grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                              <label className="text-sm font-medium mb-1 block">Category</label>
+                              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                                  <SelectTrigger>
+                                      <SelectValue placeholder="All Categories" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                      {expenseCategories.map(cat => (
+                                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                      ))}
+                                  </SelectContent>
+                              </Select>
+                          </div>
+
+                          <div>
+                              <label className="text-sm font-medium mb-1 block">Start Date</label>
+                              <Popover>
+                                  <PopoverTrigger asChild>
+                                      <Button
+                                          variant={"outline"}
+                                          className={cn(
+                                              "w-full justify-start text-left font-normal bg-background",
+                                              !startDate && "text-muted-foreground"
+                                          )}
+                                      >
+                                          <CalendarIcon className="mr-2 h-4 w-4" />
+                                          {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+                                      </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0">
+                                      <Calendar
+                                          mode="single"
+                                          selected={startDate}
+                                          onSelect={setStartDate}
+                                          initialFocus
+                                      />
+                                  </PopoverContent>
+                              </Popover>
+                          </div>
+
+                          <div>
+                              <label className="text-sm font-medium mb-1 block">End Date</label>
+                              <Popover>
+                                  <PopoverTrigger asChild>
+                                      <Button
+                                          variant={"outline"}
+                                          className={cn(
+                                              "w-full justify-start text-left font-normal bg-background",
+                                              !endDate && "text-muted-foreground"
+                                          )}
+                                      >
+                                          <CalendarIcon className="mr-2 h-4 w-4" />
+                                          {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
+                                      </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0">
+                                      <Calendar
+                                          mode="single"
+                                          selected={endDate}
+                                          onSelect={setEndDate}
+                                          disabled={(date) =>
+                                              startDate ? date < startDate : false
+                                          }
+                                          initialFocus
+                                      />
+                                  </PopoverContent>
+                              </Popover>
+                          </div>
+                      </div>
+                  </CardContent>
+              </Card>
+            )}
+
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
