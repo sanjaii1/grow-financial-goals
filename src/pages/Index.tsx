@@ -7,6 +7,7 @@ import { Session } from "@supabase/supabase-js";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { IncomeExpenseChart } from "@/components/IncomeExpenseChart";
 
 const fetchDashboardData = async () => {
   const { data: { user } } = await supabase.auth.getUser();
@@ -14,8 +15,8 @@ const fetchDashboardData = async () => {
 
   const [debts, incomes, expenses, savingsGoals] = await Promise.all([
     supabase.from('debts').select('amount,paid_amount'),
-    supabase.from('incomes').select('amount'),
-    supabase.from('expenses').select('amount'),
+    supabase.from('incomes').select('amount,income_date'),
+    supabase.from('expenses').select('amount,expense_date'),
     supabase.from('savings_goals').select('current_amount,target_amount'),
   ]);
 
@@ -40,13 +41,25 @@ const DashboardOverview = () => {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i}>
-            <CardHeader><Skeleton className="h-6 w-3/4" /></CardHeader>
-            <CardContent><Skeleton className="h-8 w-1/2" /></CardContent>
-          </Card>
-        ))}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold mb-4">Financial Overview</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader><Skeleton className="h-6 w-3/4" /></CardHeader>
+              <CardContent><Skeleton className="h-8 w-1/2" /></CardContent>
+            </Card>
+          ))}
+        </div>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-1/4 mb-2" />
+            <Skeleton className="h-4 w-1/3" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-80 w-full" />
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -68,7 +81,7 @@ const DashboardOverview = () => {
   return (
     <div className="mb-8">
       <h2 className="text-2xl font-bold mb-4">Financial Overview</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {overviewData.map((item, index) => (
           <Card key={index}>
             <CardHeader>
@@ -82,6 +95,7 @@ const DashboardOverview = () => {
           </Card>
         ))}
       </div>
+      <IncomeExpenseChart incomes={data?.incomes || []} expenses={data?.expenses || []} />
     </div>
   );
 };
