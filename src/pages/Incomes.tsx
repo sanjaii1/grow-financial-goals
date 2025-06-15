@@ -148,7 +148,7 @@ const Incomes = () => {
   const incomeCategories = ["All", ...new Set(incomes?.map(i => i.category).filter(Boolean) as string[])];
 
   return (
-    <div className="max-w-6xl mx-auto py-8 px-4">
+    <div className="w-full py-8 px-4">
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
