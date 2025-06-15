@@ -5,9 +5,7 @@ import {
   SidebarContent,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTitle,
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import {
@@ -67,7 +65,7 @@ export function AppSidebar() {
   return (
     <Sidebar className="hidden border-r bg-muted/40 md:block">
       <SidebarHeader>
-        <SidebarTitle>Finance Tracker</SidebarTitle>
+        <h2 className="text-lg font-semibold">Finance Tracker</h2>
       </SidebarHeader>
       <SidebarContent className="flex-1">
         <SidebarMenu>
