@@ -19,6 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { CATEGORY_COLORS } from "@/lib/constants";
 
 type Budget = Database["public"]["Tables"]["budgets"]["Row"];
 type Expense = Database["public"]["Tables"]["expenses"]["Row"];
@@ -108,7 +109,6 @@ const Budgets = () => {
     const isLoading = isLoadingBudgets || isLoadingExpenses;
     
     const CATEGORY_COLORS = [ "#3b82f6", "#ec4899", "#f59e0b", "#22c55e", "#8b5cf6", "#6366f1", "#ef4444", "#f97316" ];
-
 
     return (
         <div className="w-full max-w-6xl mx-auto p-4 md:p-6">
