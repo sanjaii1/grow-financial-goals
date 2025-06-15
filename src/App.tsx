@@ -13,6 +13,7 @@ import Expenses from "./pages/Expenses";
 import Savings from "./pages/Savings";
 import Settings from "./pages/Settings";
 import Reports from "./pages/Reports";
+import Budgets from "./pages/Budgets";
 import { AppLayout } from "./layouts/AppLayout";
 import { ThemeProvider } from "./components/ThemeProvider";
 
@@ -35,6 +36,7 @@ const App = () => (
               <Route path="/savings" element={<Savings />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/budgets" element={<Budgets />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

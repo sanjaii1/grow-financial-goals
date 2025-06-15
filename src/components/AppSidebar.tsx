@@ -18,6 +18,7 @@ import {
   LogOut,
   Settings,
   ChartBar,
+  Target,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./ThemeToggle";
@@ -55,6 +56,11 @@ const menuItems = [
     href: "/reports",
     title: "Reports",
     icon: ChartBar,
+  },
+  {
+    href: "/budgets",
+    title: "Budgets",
+    icon: Target,
   },
 ];
 
