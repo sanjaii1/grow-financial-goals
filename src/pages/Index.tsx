@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
@@ -11,6 +12,7 @@ import { ArrowDownCircle, ArrowUpCircle, Wallet, Target, CreditCard } from "luci
 import { SpendingByCategory } from "@/components/SpendingByCategory";
 import { SavingsPlan } from "@/components/SavingsPlan";
 import { CashFlowChart } from "@/components/CashFlowChart";
+import { RecentTransactions } from "@/components/RecentTransactions";
 
 const fetchDashboardData = async () => {
   const { data: { user } } = await supabase.auth.getUser();
@@ -18,8 +20,8 @@ const fetchDashboardData = async () => {
 
   const [debts, incomes, expenses, savingsGoals] = await Promise.all([
     supabase.from('debts').select('amount,paid_amount'),
-    supabase.from('incomes').select('amount,income_date'),
-    supabase.from('expenses').select('amount,category,expense_date'),
+    supabase.from('incomes').select('id,source,amount,income_date,category'),
+    supabase.from('expenses').select('id,description,amount,category,expense_date'),
     supabase.from('savings_goals').select('name,current_amount,target_amount'),
   ]);
 
@@ -134,6 +136,9 @@ const DashboardOverview = () => {
       </div>
       <div className="mt-8">
         <CashFlowChart incomes={data?.incomes || []} expenses={data?.expenses || []} />
+      </div>
+      <div className="mt-8">
+        <RecentTransactions incomes={data?.incomes || []} expenses={data?.expenses || []} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
         <SpendingByCategory expenses={data?.expenses || []} />
