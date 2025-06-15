@@ -193,35 +193,35 @@ const Savings = () => {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-4 md:p-6 text-gray-300">
-      <Card className="bg-slate-900 border-slate-800 text-gray-300">
+    <div className="w-full max-w-6xl mx-auto p-4 md:p-6">
+      <Card>
         <CardHeader>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <CardTitle className="text-3xl font-bold flex items-center gap-2">
                   <PiggyBank /> Savings Goals
               </CardTitle>
-              <CardDescription className="text-gray-400 mt-1">
+              <CardDescription className="mt-1">
                 Manage your savings goals and track your progress.
               </CardDescription>
             </div>
             <Dialog open={isAddGoalDialogOpen} onOpenChange={setIsAddGoalDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white"><PlusCircle className="mr-2 h-4 w-4" /> Add Goal</Button>
+                <Button className="w-full md:w-auto"><PlusCircle className="mr-2 h-4 w-4" /> Add Goal</Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px] bg-slate-900 border-slate-700 text-gray-300">
+              <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                   <DialogTitle>Add New Savings Goal</DialogTitle>
-                  <DialogDescription className="text-gray-400">
+                  <DialogDescription>
                     Enter the details of your savings goal below.
                   </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onAddGoalSubmit)} className="space-y-4">
-                    <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>Goal Name</FormLabel><FormControl><Input placeholder="e.g., New Car" {...field} className="bg-slate-800 border-slate-700 placeholder:text-gray-500" /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={form.control} name="target_amount" render={({ field }) => (<FormItem><FormLabel>Target Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 20000" {...field} className="bg-slate-800 border-slate-700 placeholder:text-gray-500" /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={form.control} name="target_date" render={({ field }) => (<FormItem><FormLabel>Target Date (Optional)</FormLabel><FormControl><Input type="date" {...field} className="bg-slate-800 border-slate-700" /></FormControl><FormMessage /></FormItem>)} />
-                    <Button type="submit" disabled={addSavingsGoal.isPending} className="w-full bg-blue-600 hover:bg-blue-700 text-white">{addSavingsGoal.isPending ? "Adding..." : "Add Goal"}</Button>
+                    <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>Goal Name</FormLabel><FormControl><Input placeholder="e.g., New Car" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="target_amount" render={({ field }) => (<FormItem><FormLabel>Target Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 20000" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="target_date" render={({ field }) => (<FormItem><FormLabel>Target Date (Optional)</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <Button type="submit" disabled={addSavingsGoal.isPending} className="w-full">{addSavingsGoal.isPending ? "Adding..." : "Add Goal"}</Button>
                   </form>
                 </Form>
               </DialogContent>
@@ -229,35 +229,35 @@ const Savings = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border border-slate-700">
+          <div className="rounded-md border">
             <Table>
               <TableHeader>
-                <TableRow className="border-b-slate-700 hover:bg-slate-900">
-                  <TableHead className="text-gray-400">Name</TableHead>
-                  <TableHead className="text-right text-gray-400">Target Amount</TableHead>
-                  <TableHead className="text-right text-gray-400">Saved Amount</TableHead>
-                  <TableHead className="text-right text-gray-400">Remaining</TableHead>
-                  <TableHead className="hidden md:table-cell text-gray-400">Target Date</TableHead>
-                  <TableHead className="hidden lg:table-cell text-gray-400">Progress</TableHead>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead className="text-right">Target Amount</TableHead>
+                  <TableHead className="text-right">Saved Amount</TableHead>
+                  <TableHead className="text-right">Remaining</TableHead>
+                  <TableHead className="hidden md:table-cell">Target Date</TableHead>
+                  <TableHead className="hidden lg:table-cell">Progress</TableHead>
                   <TableHead><span className="sr-only">Actions</span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   Array.from({ length: 3 }).map((_, i) => (
-                    <TableRow key={i} className="border-slate-800">
-                      <TableCell><Skeleton className="h-4 w-32 bg-slate-700" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24 ml-auto bg-slate-700" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24 ml-auto bg-slate-700" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24 ml-auto bg-slate-700" /></TableCell>
-                      <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24 bg-slate-700" /></TableCell>
-                      <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-28 ml-auto bg-slate-700" /></TableCell>
-                      <TableCell><Skeleton className="h-8 w-8 ml-auto rounded-md bg-slate-700" /></TableCell>
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24 ml-auto" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24 ml-auto" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24 ml-auto" /></TableCell>
+                      <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-28 ml-auto" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-8 ml-auto rounded-md" /></TableCell>
                     </TableRow>
                   ))
                 ) : savingsGoals?.length === 0 ? (
-                  <TableRow className="border-slate-800 hover:bg-slate-800/50">
-                    <TableCell colSpan={7} className="h-24 text-center text-gray-400">
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-24 text-center">
                       No savings goals found. Start by adding one.
                     </TableCell>
                   </TableRow>
@@ -266,7 +266,7 @@ const Savings = () => {
                     const progress = goal.target_amount > 0 ? (goal.current_amount / goal.target_amount) * 100 : 0;
                     const remainingAmount = goal.target_amount - goal.current_amount;
                     return (
-                      <TableRow key={goal.id} className="border-slate-800 hover:bg-slate-800/50">
+                      <TableRow key={goal.id}>
                         <TableCell className="font-medium">{goal.name}</TableCell>
                         <TableCell className="text-right">₹{goal.target_amount.toLocaleString()}</TableCell>
                         <TableCell className="text-right text-green-400">₹{goal.current_amount.toLocaleString()}</TableCell>
@@ -274,25 +274,25 @@ const Savings = () => {
                         <TableCell className="hidden md:table-cell">{goal.target_date ? new Date(goal.target_date).toLocaleDateString() : 'N/A'}</TableCell>
                         <TableCell className="hidden lg:table-cell">
                           <div className="flex items-center justify-start gap-2">
-                            <Progress value={progress} className="h-2 w-[100px] bg-slate-700" />
-                            <span className="text-xs text-gray-400">{`${Math.round(progress)}%`}</span>
+                            <Progress value={progress} className="h-2 w-[100px]" />
+                            <span className="text-xs text-muted-foreground">{`${Math.round(progress)}%`}</span>
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
                            <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-slate-700 focus:bg-slate-700 data-[state=open]:bg-slate-700">
+                              <Button variant="ghost" className="h-8 w-8 p-0">
                                 <span className="sr-only">Open menu</span>
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-slate-900 border-slate-700 text-gray-300">
-                              <DropdownMenuLabel className="border-b border-slate-700">Actions</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => handleAddContributionClick(goal)} className="focus:bg-slate-800 focus:text-gray-200">
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuItem onClick={() => handleAddContributionClick(goal)}>
                                     <PlusCircle className="mr-2 h-4 w-4" />
                                     <span>Add Contribution</span>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem className="text-red-500 focus:text-red-500 focus:bg-slate-800" onClick={() => handleDeleteClick(goal)}>
+                                <DropdownMenuItem className="text-red-500" onClick={() => handleDeleteClick(goal)}>
                                   <Trash2 className="mr-2 h-4 w-4" />
                                   <span>Delete</span>
                                 </DropdownMenuItem>
@@ -311,17 +311,17 @@ const Savings = () => {
       
       {/* Add Contribution Dialog */}
       <Dialog open={isAddContributionDialogOpen} onOpenChange={setIsAddContributionDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-slate-900 border-slate-700 text-gray-300">
+        <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
                 <DialogTitle>Add Contribution to "{selectedGoal?.name}"</DialogTitle>
-                <DialogDescription className="text-gray-400">
+                <DialogDescription>
                     Enter the amount for your contribution.
                 </DialogDescription>
             </DialogHeader>
            <Form {...addContributionForm}>
             <form onSubmit={addContributionForm.handleSubmit(onAddContributionSubmit)} className="space-y-4">
-              <FormField control={addContributionForm.control} name="amount" render={({ field }) => (<FormItem><FormLabel>Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 100" {...field} className="bg-slate-800 border-slate-700 placeholder:text-gray-500" /></FormControl><FormMessage /></FormItem>)} />
-              <Button type="submit" disabled={addContribution.isPending} className="w-full bg-blue-600 hover:bg-blue-700 text-white">{addContribution.isPending ? "Adding..." : "Add"}</Button>
+              <FormField control={addContributionForm.control} name="amount" render={({ field }) => (<FormItem><FormLabel>Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 100" {...field} /></FormControl><FormMessage /></FormItem>)} />
+              <Button type="submit" disabled={addContribution.isPending} className="w-full">{addContribution.isPending ? "Adding..." : "Add"}</Button>
             </form>
           </Form>
         </DialogContent>
@@ -329,13 +329,13 @@ const Savings = () => {
       
       {/* Delete Goal Alert Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="bg-slate-900 border-slate-700 text-gray-300">
+        <AlertDialogContent>
             <AlertDialogHeader>
                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                <AlertDialogDescription className="text-gray-400">This action cannot be undone. This will permanently delete this savings goal.</AlertDialogDescription>
+                <AlertDialogDescription>This action cannot be undone. This will permanently delete this savings goal.</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="border-slate-700 hover:bg-slate-800 text-gray-300">Cancel</AlertDialogCancel>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={handleDeleteConfirm} disabled={deleteSavingsGoal.isPending}>
                 {deleteSavingsGoal.isPending ? 'Deleting...' : 'Delete'}
               </AlertDialogAction>
