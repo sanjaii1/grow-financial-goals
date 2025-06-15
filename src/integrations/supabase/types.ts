@@ -78,6 +78,7 @@ export type Database = {
       incomes: {
         Row: {
           amount: number
+          category: string | null
           created_at: string
           id: string
           income_date: string
@@ -86,6 +87,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          category?: string | null
           created_at?: string
           id?: string
           income_date: string
@@ -94,6 +96,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          category?: string | null
           created_at?: string
           id?: string
           income_date?: string
