@@ -1,3 +1,4 @@
+
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -13,7 +14,7 @@ import {
   ShoppingCart,
   CreditCard,
   PiggyBank,
-  Wallet,
+  TrendingUp,
   LogOut,
   Settings,
   ChartBar,
@@ -88,8 +89,8 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-r bg-sidebar">
       <SidebarHeader className="flex items-center gap-2 p-4">
-        <Wallet className="h-6 w-6 text-primary" />
-        <h2 className="text-xl font-bold text-primary">ExpenseTracker</h2>
+        <TrendingUp className="h-6 w-6 text-primary" />
+        <h2 className="text-xl font-bold text-primary">Financial Goals</h2>
       </SidebarHeader>
       <SidebarContent className="flex-1">
         <SidebarMenu>
