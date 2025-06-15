@@ -105,15 +105,16 @@ const Debts = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not logged in");
       
-      const debtData = {
-        name: newDebt.name,
-        amount: newDebt.amount,
-        due_date: newDebt.due_date,
-        user_id: user.id,
-        interest_rate: newDebt.interest_rate || null,
-      };
+      const { error } = await supabase.from("debts").insert([
+        {
+          name: newDebt.name,
+          amount: newDebt.amount,
+          due_date: newDebt.due_date,
+          user_id: user.id,
+          interest_rate: newDebt.interest_rate || null,
+        },
+      ]);
 
-      const { error } = await supabase.from("debts").insert([debtData]);
       if (error) throw new Error(error.message);
     },
     onSuccess: () => {
