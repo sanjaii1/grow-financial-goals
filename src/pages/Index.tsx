@@ -52,15 +52,6 @@ const DashboardOverview = () => {
             </Card>
           ))}
         </div>
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-1/4 mb-2" />
-            <Skeleton className="h-4 w-1/3" />
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-80 w-full" />
-          </CardContent>
-        </Card>
       </div>
     );
   }
@@ -97,7 +88,6 @@ const DashboardOverview = () => {
           </Card>
         ))}
       </div>
-      <IncomeExpenseChart incomes={data?.incomes || []} expenses={data?.expenses || []} />
     </div>
   );
 };
