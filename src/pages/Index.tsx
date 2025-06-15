@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
@@ -47,7 +46,7 @@ const Index = () => {
             <Link to="/auth">Profile</Link>
           </Button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="p-6 bg-card rounded-lg border">
             <h2 className="text-xl font-semibold mb-2">Debts</h2>
             <p className="text-muted-foreground mb-4">Manage your outstanding debts.</p>
@@ -67,6 +66,13 @@ const Index = () => {
             <p className="text-muted-foreground mb-4">Track and categorize your spending.</p>
             <Button asChild>
               <Link to="/expenses">Go to Expenses</Link>
+            </Button>
+          </div>
+          <div className="p-6 bg-card rounded-lg border">
+            <h2 className="text-xl font-semibold mb-2">Savings Goals</h2>
+            <p className="text-muted-foreground mb-4">Set and track your savings goals.</p>
+            <Button asChild>
+              <Link to="/savings">Go to Savings</Link>
             </Button>
           </div>
         </div>
