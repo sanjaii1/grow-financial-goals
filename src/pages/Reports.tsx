@@ -1,3 +1,4 @@
+
 import React, { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -111,7 +112,7 @@ const Reports = () => {
     const CATEGORY_COLORS = [ "#3b82f6", "#ec4899", "#f59e0b", "#22c55e", "#8b5cf6", "#6366f1", "#ef4444", "#f97316" ];
 
     return (
-        <div className="w-full max-w-6xl mx-auto p-4 md:p-6 bg-background">
+        <div className="w-full max-w-6xl mx-auto p-4 md:p-6">
             <div className="mb-6">
                 <h1 className="text-3xl font-bold flex items-center gap-2">
                     <ChartBar className="h-8 w-8" /> Reports & Analytics
