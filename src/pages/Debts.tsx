@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useMemo } from "react";
@@ -10,6 +11,7 @@ import { DebtCard } from "@/components/debts/DebtCard";
 import { DebtFilters, DebtFilters as DebtFiltersType } from "@/components/debts/DebtFilters";
 import { DebtSummary } from "@/components/debts/DebtSummary";
 import { AddDebtDialog } from "@/components/debts/AddDebtDialog";
+import * as z from "zod";
 
 const debtSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -30,7 +32,13 @@ type Debt = {
   due_date: string;
   paid_amount: number;
   created_at: string;
+  updated_at: string;
   user_id: string;
+  debt_type: string;
+  status: string;
+  notes: string | null;
+  payment_mode: string | null;
+  start_date: string | null;
 };
 
 const fetchDebts = async () => {
