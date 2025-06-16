@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useMemo } from "react";
@@ -11,6 +10,10 @@ import { DebtCard } from "@/components/debts/DebtCard";
 import { DebtFilters, DebtFilters as DebtFiltersType } from "@/components/debts/DebtFilters";
 import { DebtSummary } from "@/components/debts/DebtSummary";
 import { AddDebtDialog } from "@/components/debts/AddDebtDialog";
+import { PaymentDialog } from "@/components/debts/PaymentDialog";
+import { EditDebtDialog } from "@/components/debts/EditDebtDialog";
+import { DeleteDebtDialog } from "@/components/debts/DeleteDebtDialog";
+import { DebtDetailsDialog } from "@/components/debts/DebtDetailsDialog";
 import * as z from "zod";
 
 const debtSchema = z.object({
@@ -53,6 +56,11 @@ const fetchDebts = async () => {
 const Debts = () => {
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
   const [selectedTab, setSelectedTab] = useState("all");
   const [filters, setFilters] = useState<DebtFiltersType>({
     search: "",
@@ -178,24 +186,99 @@ const Debts = () => {
     },
   });
 
-  const handleAddPayment = (debt: any) => {
-    // TODO: Implement payment dialog
-    toast({ title: "Coming Soon", description: "Payment functionality will be added" });
+  const addPayment = useMutation({
+    mutationFn: async ({ debtId, amount }: { debtId: string; amount: number }) => {
+      const { data: debt, error: fetchError } = await supabase
+        .from("debts")
+        .select("*")
+        .eq("id", debtId)
+        .single();
+
+      if (fetchError) throw new Error(fetchError.message);
+
+      const newPaidAmount = (debt.paid_amount || 0) + amount;
+      const newStatus = newPaidAmount >= debt.amount ? "cleared" : "active";
+
+      const { error } = await supabase
+        .from("debts")
+        .update({ 
+          paid_amount: newPaidAmount,
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", debtId);
+
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["debts"] });
+      toast({ title: "Success", description: "Payment added successfully!" });
+      setIsPaymentDialogOpen(false);
+      setSelectedDebt(null);
+    },
+    onError: (error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const updateDebt = useMutation({
+    mutationFn: async (updatedDebt: Partial<Debt> & { id: string }) => {
+      const { error } = await supabase
+        .from("debts")
+        .update({ ...updatedDebt, updated_at: new Date().toISOString() })
+        .eq("id", updatedDebt.id);
+
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["debts"] });
+      toast({ title: "Success", description: "Debt updated successfully!" });
+      setIsEditDialogOpen(false);
+      setSelectedDebt(null);
+    },
+    onError: (error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const deleteDebt = useMutation({
+    mutationFn: async (debtId: string) => {
+      const { error } = await supabase
+        .from("debts")
+        .delete()
+        .eq("id", debtId);
+
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["debts"] });
+      toast({ title: "Success", description: "Debt deleted successfully!" });
+      setIsDeleteDialogOpen(false);
+      setSelectedDebt(null);
+    },
+    onError: (error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const handleAddPayment = (debt: Debt) => {
+    setSelectedDebt(debt);
+    setIsPaymentDialogOpen(true);
   };
 
-  const handleEditDebt = (debt: any) => {
-    // TODO: Implement edit dialog
-    toast({ title: "Coming Soon", description: "Edit functionality will be added" });
+  const handleEditDebt = (debt: Debt) => {
+    setSelectedDebt(debt);
+    setIsEditDialogOpen(true);
   };
 
-  const handleDeleteDebt = (debt: any) => {
-    // TODO: Implement delete confirmation
-    toast({ title: "Coming Soon", description: "Delete functionality will be added" });
+  const handleDeleteDebt = (debt: Debt) => {
+    setSelectedDebt(debt);
+    setIsDeleteDialogOpen(true);
   };
 
-  const handleViewDetails = (debt: any) => {
-    // TODO: Implement debt details view
-    toast({ title: "Coming Soon", description: "Debt details view will be added" });
+  const handleViewDetails = (debt: Debt) => {
+    setSelectedDebt(debt);
+    setIsDetailsDialogOpen(true);
   };
 
   const handleClearFilters = () => {
@@ -294,6 +377,40 @@ const Debts = () => {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Add Payment Dialog */}
+      <PaymentDialog
+        open={isPaymentDialogOpen}
+        onOpenChange={setIsPaymentDialogOpen}
+        debt={selectedDebt}
+        onSubmit={(amount) => selectedDebt && addPayment.mutate({ debtId: selectedDebt.id, amount })}
+        isLoading={addPayment.isPending}
+      />
+
+      {/* Edit Debt Dialog */}
+      <EditDebtDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        debt={selectedDebt}
+        onSubmit={(data) => selectedDebt && updateDebt.mutate({ ...data, id: selectedDebt.id })}
+        isLoading={updateDebt.isPending}
+      />
+
+      {/* Delete Debt Dialog */}
+      <DeleteDebtDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        debt={selectedDebt}
+        onConfirm={() => selectedDebt && deleteDebt.mutate(selectedDebt.id)}
+        isLoading={deleteDebt.isPending}
+      />
+
+      {/* Debt Details Dialog */}
+      <DebtDetailsDialog
+        open={isDetailsDialogOpen}
+        onOpenChange={setIsDetailsDialogOpen}
+        debt={selectedDebt}
+      />
 
       {/* Add Debt Dialog */}
       <AddDebtDialog

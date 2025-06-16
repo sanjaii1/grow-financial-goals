@@ -19,6 +19,7 @@ import {
   Clock,
   Settings,
   LogOut,
+  Receipt,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./ThemeToggle";
@@ -30,6 +31,7 @@ const menuItems = [
   { href: "/", title: "Dashboard", icon: Home },
   { href: "/expenses", title: "Expenses", icon: CreditCard },
   { href: "/incomes", title: "Income", icon: Wallet },
+  { href: "/debts", title: "Debts", icon: Receipt },
   { href: "/budgets", title: "Budget", icon: DollarSign },
   { href: "/savings", title: "Savings", icon: Target },
   { href: "/reports", title: "Reports", icon: TrendingUp },
