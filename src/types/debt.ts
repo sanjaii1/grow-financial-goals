@@ -10,8 +10,8 @@ export interface Debt {
   interest_rate: number | null;
   due_date: string;
   start_date: string | null;
-  debt_type: DebtType;
-  status: DebtStatus;
+  debt_type: string; // Changed from DebtType to string to match database
+  status: string; // Changed from DebtStatus to string to match database
   notes: string | null;
   payment_mode: string | null;
   created_at: string;

@@ -15,6 +15,7 @@ import { EditDebtDialog } from "@/components/debts/EditDebtDialog";
 import { DeleteDebtDialog } from "@/components/debts/DeleteDebtDialog";
 import { DebtDetailsDialog } from "@/components/debts/DebtDetailsDialog";
 import { Debt } from "@/types/debt";
+import { useIsMobile } from "@/hooks/use-mobile";
 import * as z from "zod";
 
 const debtSchema = z.object({
@@ -39,6 +40,8 @@ const fetchDebts = async () => {
 
 const Debts = () => {
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
+  
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -267,75 +270,137 @@ const Debts = () => {
   };
 
   return (
-    <div className="w-full p-4 md:p-6 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <span role="img" aria-label="credit card">💳</span> Debt Management
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Track your debts and manage repayments efficiently.
-          </p>
+    <div className="w-full p-3 md:p-6 space-y-4 md:space-y-6 min-h-screen">
+      {/* Header Section - Responsive */}
+      <div className="flex flex-col space-y-4">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          <div className="space-y-1">
+            <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
+              <span role="img" aria-label="credit card" className="text-xl md:text-2xl">💳</span> 
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Debt Management
+              </span>
+            </h1>
+            <p className="text-sm md:text-base text-muted-foreground">
+              Track your debts and manage repayments efficiently.
+            </p>
+          </div>
+          
+          {/* Action Buttons - Stack on mobile */}
+          <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+            <Button variant="outline" size={isMobile ? "default" : "sm"} className="w-full sm:w-auto">
+              <BarChart3 className="mr-2 h-4 w-4" />
+              Reports
+            </Button>
+            <Button onClick={() => setIsAddDialogOpen(true)} className="w-full sm:w-auto">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Debt
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <BarChart3 className="mr-2 h-4 w-4" />
-            Reports
-          </Button>
-          <Button onClick={() => setIsAddDialogOpen(true)}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Debt
-          </Button>
-        </div>
+
+        {/* Summary Cards - Responsive */}
+        <DebtSummary data={summaryData} />
+
+        {/* Filters - Responsive */}
+        <DebtFilters 
+          filters={filters} 
+          onFiltersChange={setFilters} 
+          onClearFilters={handleClearFilters}
+        />
       </div>
 
-      <DebtSummary data={summaryData} />
-
-      <DebtFilters 
-        filters={filters} 
-        onFiltersChange={setFilters} 
-        onClearFilters={handleClearFilters}
-      />
-
+      {/* Tabs Section - Enhanced Responsive Design */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="borrowed">Borrowed</TabsTrigger>
-          <TabsTrigger value="lent">Lent</TabsTrigger>
-          <TabsTrigger value="active">Active</TabsTrigger>
-          <TabsTrigger value="overdue">Overdue</TabsTrigger>
-          <TabsTrigger value="cleared">Cleared</TabsTrigger>
-        </TabsList>
+        {/* Mobile: Scrollable tabs */}
+        <div className="relative">
+          <TabsList className={`
+            ${isMobile 
+              ? "grid grid-cols-3 h-auto p-1" 
+              : "grid grid-cols-6 h-10"
+            } 
+            w-full bg-muted/50 backdrop-blur-sm rounded-lg border
+          `}>
+            <TabsTrigger 
+              value="all" 
+              className={`
+                ${isMobile ? "text-xs py-2 px-2" : "text-sm"}
+                data-[state=active]:bg-background data-[state=active]:shadow-sm
+                transition-all duration-200
+              `}
+            >
+              All
+            </TabsTrigger>
+            <TabsTrigger 
+              value="borrowed"
+              className={`
+                ${isMobile ? "text-xs py-2 px-2" : "text-sm"}
+                data-[state=active]:bg-background data-[state=active]:shadow-sm
+                transition-all duration-200
+              `}
+            >
+              {isMobile ? "Borrowed" : "Borrowed"}
+            </TabsTrigger>
+            <TabsTrigger 
+              value="lent"
+              className={`
+                ${isMobile ? "text-xs py-2 px-2" : "text-sm"}
+                data-[state=active]:bg-background data-[state=active]:shadow-sm
+                transition-all duration-200
+              `}
+            >
+              {isMobile ? "Lent" : "Lent"}
+            </TabsTrigger>
+            {!isMobile && (
+              <>
+                <TabsTrigger value="active" className="text-sm">Active</TabsTrigger>
+                <TabsTrigger value="overdue" className="text-sm">Overdue</TabsTrigger>
+                <TabsTrigger value="cleared" className="text-sm">Cleared</TabsTrigger>
+              </>
+            )}
+          </TabsList>
+          
+          {/* Mobile: Additional tabs in dropdown or second row */}
+          {isMobile && (
+            <div className="mt-2">
+              <TabsList className="grid grid-cols-3 h-auto p-1 w-full bg-muted/50 backdrop-blur-sm rounded-lg border">
+                <TabsTrigger value="active" className="text-xs py-2 px-2">Active</TabsTrigger>
+                <TabsTrigger value="overdue" className="text-xs py-2 px-2">Overdue</TabsTrigger>
+                <TabsTrigger value="cleared" className="text-xs py-2 px-2">Cleared</TabsTrigger>
+              </TabsList>
+            </div>
+          )}
+        </div>
 
-        <TabsContent value={selectedTab} className="mt-6">
+        <TabsContent value={selectedTab} className="mt-4 md:mt-6">
           {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
               {Array.from({ length: 6 }).map((_, i) => (
                 <Card key={i} className="animate-pulse">
-                  <CardContent className="p-6">
-                    <div className="h-32 bg-muted rounded" />
+                  <CardContent className="p-4 md:p-6">
+                    <div className="h-24 md:h-32 bg-muted rounded" />
                   </CardContent>
                 </Card>
               ))}
             </div>
           ) : filteredDebts.length === 0 ? (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <Card className="border-dashed border-2">
+              <CardContent className="p-8 md:p-12 text-center">
+                <FileText className="h-10 w-10 md:h-12 md:w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No debts found</h3>
-                <p className="text-muted-foreground mb-4">
+                <p className="text-sm md:text-base text-muted-foreground mb-4 max-w-md mx-auto">
                   {selectedTab === "all" 
-                    ? "Start by adding your first debt record." 
-                    : `No debts found in the "${selectedTab}" category.`}
+                    ? "Start by adding your first debt record to track your finances." 
+                    : `No debts found in the "${selectedTab}" category. Try adjusting your filters or add a new debt.`}
                 </p>
-                <Button onClick={() => setIsAddDialogOpen(true)}>
+                <Button onClick={() => setIsAddDialogOpen(true)} className="w-full sm:w-auto">
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Add Your First Debt
                 </Button>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
               {filteredDebts.map((debt) => (
                 <DebtCard
                   key={debt.id}
@@ -351,6 +416,7 @@ const Debts = () => {
         </TabsContent>
       </Tabs>
 
+      {/* Dialogs - Keep existing code */}
       <PaymentDialog
         open={isPaymentDialogOpen}
         onOpenChange={setIsPaymentDialogOpen}
