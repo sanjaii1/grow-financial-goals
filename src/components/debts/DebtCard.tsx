@@ -5,24 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Calendar, DollarSign, User, Clock, Edit, Trash2, PlusCircle, FileText } from "lucide-react";
 import { format } from "date-fns";
-
-type DebtStatus = "active" | "cleared" | "overdue";
-type DebtType = "borrowed" | "lent";
-
-interface Debt {
-  id: string;
-  name: string;
-  amount: number;
-  paid_amount: number;
-  interest_rate: number | null;
-  due_date: string;
-  start_date?: string;
-  debt_type: DebtType;
-  status: DebtStatus;
-  notes?: string;
-  payment_mode?: string;
-  created_at: string;
-}
+import { Debt } from "@/types/debt";
 
 interface DebtCardProps {
   debt: Debt;
@@ -32,7 +15,7 @@ interface DebtCardProps {
   onViewDetails: (debt: Debt) => void;
 }
 
-const getStatusColor = (status: DebtStatus) => {
+const getStatusColor = (status: string) => {
   switch (status) {
     case "active":
       return "bg-blue-100 text-blue-800";
@@ -45,7 +28,7 @@ const getStatusColor = (status: DebtStatus) => {
   }
 };
 
-const getTypeColor = (type: DebtType) => {
+const getTypeColor = (type: string) => {
   return type === "borrowed" ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700";
 };
 

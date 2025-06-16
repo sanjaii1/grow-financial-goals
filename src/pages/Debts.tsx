@@ -14,6 +14,7 @@ import { PaymentDialog } from "@/components/debts/PaymentDialog";
 import { EditDebtDialog } from "@/components/debts/EditDebtDialog";
 import { DeleteDebtDialog } from "@/components/debts/DeleteDebtDialog";
 import { DebtDetailsDialog } from "@/components/debts/DebtDetailsDialog";
+import { Debt } from "@/types/debt";
 import * as z from "zod";
 
 const debtSchema = z.object({
@@ -26,23 +27,6 @@ const debtSchema = z.object({
 const paymentSchema = z.object({
   amount: z.coerce.number().positive("Payment amount must be positive"),
 });
-
-type Debt = {
-  id: string;
-  name: string;
-  amount: number;
-  interest_rate: number | null;
-  due_date: string;
-  paid_amount: number;
-  created_at: string;
-  updated_at: string;
-  user_id: string;
-  debt_type: string;
-  status: string;
-  notes: string | null;
-  payment_mode: string | null;
-  start_date: string | null;
-};
 
 const fetchDebts = async () => {
   const { data, error } = await supabase
@@ -73,7 +57,6 @@ const Debts = () => {
     queryFn: fetchDebts,
   });
 
-  // Calculate summary data
   const summaryData = useMemo(() => {
     if (!debts) return {
       totalBorrowed: 0,
@@ -118,31 +101,25 @@ const Debts = () => {
     });
   }, [debts]);
 
-  // Filter debts based on current filters and tab
   const filteredDebts = useMemo(() => {
     if (!debts) return [];
 
     return debts.filter((debt) => {
-      // Search filter
       const searchMatch = 
         debt.name.toLowerCase().includes(filters.search.toLowerCase()) ||
         (debt.notes?.toLowerCase().includes(filters.search.toLowerCase()) ?? false);
 
-      // Status filter
       const remaining = debt.amount - (debt.paid_amount || 0);
       const isOverdue = new Date(debt.due_date) < new Date() && remaining > 0;
       const status = remaining <= 0 ? "cleared" : isOverdue ? "overdue" : "active";
       const statusMatch = filters.status === "all" || filters.status === status;
 
-      // Type filter
       const typeMatch = filters.type === "all" || filters.type === debt.debt_type;
 
-      // Date range filter
       const debtDueDate = new Date(debt.due_date);
       const startDateMatch = !filters.startDate || debtDueDate >= filters.startDate;
       const endDateMatch = !filters.endDate || debtDueDate <= filters.endDate;
 
-      // Tab filter
       let tabMatch = true;
       if (selectedTab === "borrowed") {
         tabMatch = debt.debt_type === "borrowed";
@@ -291,7 +268,6 @@ const Debts = () => {
 
   return (
     <div className="w-full p-4 md:p-6 space-y-6">
-      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -313,17 +289,14 @@ const Debts = () => {
         </div>
       </div>
 
-      {/* Summary Cards */}
       <DebtSummary data={summaryData} />
 
-      {/* Filters */}
       <DebtFilters 
         filters={filters} 
         onFiltersChange={setFilters} 
         onClearFilters={handleClearFilters}
       />
 
-      {/* Main Content */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="all">All</TabsTrigger>
@@ -378,7 +351,6 @@ const Debts = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Add Payment Dialog */}
       <PaymentDialog
         open={isPaymentDialogOpen}
         onOpenChange={setIsPaymentDialogOpen}
@@ -387,7 +359,6 @@ const Debts = () => {
         isLoading={addPayment.isPending}
       />
 
-      {/* Edit Debt Dialog */}
       <EditDebtDialog
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
@@ -396,7 +367,6 @@ const Debts = () => {
         isLoading={updateDebt.isPending}
       />
 
-      {/* Delete Debt Dialog */}
       <DeleteDebtDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
@@ -405,14 +375,12 @@ const Debts = () => {
         isLoading={deleteDebt.isPending}
       />
 
-      {/* Debt Details Dialog */}
       <DebtDetailsDialog
         open={isDetailsDialogOpen}
         onOpenChange={setIsDetailsDialogOpen}
         debt={selectedDebt}
       />
 
-      {/* Add Debt Dialog */}
       <AddDebtDialog
         open={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}

@@ -13,16 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-
-interface Debt {
-  id: string;
-  name: string;
-  amount: number;
-  interest_rate: number | null;
-  due_date: string;
-  debt_type: string;
-  notes: string | null;
-}
+import { Debt } from "@/types/debt";
 
 interface EditDebtDialogProps {
   open: boolean;
@@ -62,7 +53,7 @@ export function EditDebtDialog({ open, onOpenChange, debt, onSubmit, isLoading }
       amount: parseFloat(formData.amount),
       interest_rate: formData.interest_rate ? parseFloat(formData.interest_rate) : null,
       due_date: formData.due_date,
-      debt_type: formData.debt_type,
+      debt_type: formData.debt_type as "borrowed" | "lent",
       notes: formData.notes || null,
     });
   };

@@ -11,13 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-interface Debt {
-  id: string;
-  name: string;
-  amount: number;
-  paid_amount: number;
-}
+import { Debt } from "@/types/debt";
 
 interface PaymentDialogProps {
   open: boolean;

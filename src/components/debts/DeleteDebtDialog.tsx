@@ -8,12 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-
-interface Debt {
-  id: string;
-  name: string;
-  amount: number;
-}
+import { Debt } from "@/types/debt";
 
 interface DeleteDebtDialogProps {
   open: boolean;

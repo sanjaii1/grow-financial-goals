@@ -9,20 +9,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { format } from "date-fns";
-
-interface Debt {
-  id: string;
-  name: string;
-  amount: number;
-  paid_amount: number;
-  interest_rate: number | null;
-  due_date: string;
-  debt_type: string;
-  status: string;
-  notes: string | null;
-  created_at: string;
-  start_date: string | null;
-}
+import { Debt } from "@/types/debt";
 
 interface DebtDetailsDialogProps {
   open: boolean;
