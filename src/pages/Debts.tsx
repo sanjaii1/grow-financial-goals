@@ -1,78 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { toast } from "@/hooks/use-toast";
-import { Trash2, Edit, PlusCircle, MoreHorizontal, Search, Filter, CalendarIcon } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import { Label } from "@/components/ui/label";
+import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PlusCircle, BarChart3, FileText } from "lucide-react";
+import { DebtCard } from "@/components/debts/DebtCard";
+import { DebtFilters, DebtFilters as DebtFiltersType } from "@/components/debts/DebtFilters";
+import { DebtSummary } from "@/components/debts/DebtSummary";
+import { AddDebtDialog } from "@/components/debts/AddDebtDialog";
 
 const debtSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -108,59 +45,116 @@ const fetchDebts = async () => {
 const Debts = () => {
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filters, setFilters] = useState<{ startDate?: Date; endDate?: Date }>({});
-  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [selectedTab, setSelectedTab] = useState("all");
+  const [filters, setFilters] = useState<DebtFiltersType>({
+    search: "",
+    status: "all",
+    type: "all",
+  });
 
-  const { data: debts, isLoading } = useQuery<Debt[]>({
+  const { data: debts, isLoading } = useQuery({
     queryKey: ["debts"],
     queryFn: fetchDebts,
   });
 
-  const filteredDebts = useMemo(() => {
-    return debts?.filter((debt) => {
-      const nameMatch = debt.name.toLowerCase().includes(searchTerm.toLowerCase());
+  // Calculate summary data
+  const summaryData = useMemo(() => {
+    if (!debts) return {
+      totalBorrowed: 0,
+      totalLent: 0,
+      totalOwed: 0,
+      totalOwing: 0,
+      activeDebts: 0,
+      overdueDebts: 0,
+      clearedDebts: 0,
+    };
+
+    const now = new Date();
+    return debts.reduce((acc, debt) => {
+      const remaining = debt.amount - (debt.paid_amount || 0);
+      const isOverdue = new Date(debt.due_date) < now && remaining > 0;
       
-      const debtDueDate = new Date(debt.due_date);
-      debtDueDate.setMinutes(debtDueDate.getMinutes() + debtDueDate.getTimezoneOffset());
-      
-      const startDateMatch = filters.startDate ? debtDueDate >= filters.startDate : true;
-      const endDateMatch = filters.endDate ? debtDueDate <= filters.endDate : true;
-      
-      return nameMatch && startDateMatch && endDateMatch;
+      if (debt.debt_type === "borrowed") {
+        acc.totalBorrowed += debt.amount;
+        acc.totalOwed += remaining;
+      } else {
+        acc.totalLent += debt.amount;
+        acc.totalOwing += remaining;
+      }
+
+      if (remaining <= 0) {
+        acc.clearedDebts++;
+      } else if (isOverdue) {
+        acc.overdueDebts++;
+      } else {
+        acc.activeDebts++;
+      }
+
+      return acc;
+    }, {
+      totalBorrowed: 0,
+      totalLent: 0,
+      totalOwed: 0,
+      totalOwing: 0,
+      activeDebts: 0,
+      overdueDebts: 0,
+      clearedDebts: 0,
     });
-  }, [debts, searchTerm, filters]);
+  }, [debts]);
 
-  const addDebtForm = useForm<z.infer<typeof debtSchema>>({
-    resolver: zodResolver(debtSchema),
-    defaultValues: { name: "", amount: 0, interest_rate: 0, due_date: "" },
-  });
+  // Filter debts based on current filters and tab
+  const filteredDebts = useMemo(() => {
+    if (!debts) return [];
 
-  const editDebtForm = useForm<z.infer<typeof debtSchema>>({
-    resolver: zodResolver(debtSchema),
-  });
+    return debts.filter((debt) => {
+      // Search filter
+      const searchMatch = 
+        debt.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+        (debt.notes?.toLowerCase().includes(filters.search.toLowerCase()) ?? false);
 
-  const paymentForm = useForm<z.infer<typeof paymentSchema>>({
-    resolver: zodResolver(paymentSchema),
-    defaultValues: { amount: 0 },
-  });
+      // Status filter
+      const remaining = debt.amount - (debt.paid_amount || 0);
+      const isOverdue = new Date(debt.due_date) < new Date() && remaining > 0;
+      const status = remaining <= 0 ? "cleared" : isOverdue ? "overdue" : "active";
+      const statusMatch = filters.status === "all" || filters.status === status;
+
+      // Type filter
+      const typeMatch = filters.type === "all" || filters.type === debt.debt_type;
+
+      // Date range filter
+      const debtDueDate = new Date(debt.due_date);
+      const startDateMatch = !filters.startDate || debtDueDate >= filters.startDate;
+      const endDateMatch = !filters.endDate || debtDueDate <= filters.endDate;
+
+      // Tab filter
+      let tabMatch = true;
+      if (selectedTab === "borrowed") {
+        tabMatch = debt.debt_type === "borrowed";
+      } else if (selectedTab === "lent") {
+        tabMatch = debt.debt_type === "lent";
+      } else if (selectedTab === "active") {
+        tabMatch = remaining > 0 && !isOverdue;
+      } else if (selectedTab === "overdue") {
+        tabMatch = isOverdue;
+      } else if (selectedTab === "cleared") {
+        tabMatch = remaining <= 0;
+      }
+
+      return searchMatch && statusMatch && typeMatch && startDateMatch && endDateMatch && tabMatch;
+    });
+  }, [debts, filters, selectedTab]);
 
   const addDebt = useMutation({
-    mutationFn: async (newDebt: z.infer<typeof debtSchema>) => {
+    mutationFn: async (newDebt: any) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not logged in");
       
       const { error } = await supabase.from("debts").insert([
         {
-          name: newDebt.name,
-          amount: newDebt.amount,
-          due_date: newDebt.due_date,
+          ...newDebt,
           user_id: user.id,
-          interest_rate: newDebt.interest_rate || null,
+          status: "active",
+          paid_amount: 0,
         },
       ]);
 
@@ -168,8 +162,7 @@ const Debts = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["debts"] });
-      toast({ title: "Success", description: "Debt added!" });
-      addDebtForm.reset();
+      toast({ title: "Success", description: "Debt added successfully!" });
       setIsAddDialogOpen(false);
     },
     onError: (error) => {
@@ -177,373 +170,130 @@ const Debts = () => {
     },
   });
 
-  const updateDebt = useMutation({
-    mutationFn: async (updatedDebt: z.infer<typeof debtSchema>) => {
-        if (!selectedDebt) throw new Error("No debt selected");
-        const { error } = await supabase.from("debts").update({ 
-          name: updatedDebt.name,
-          amount: updatedDebt.amount,
-          due_date: updatedDebt.due_date,
-          interest_rate: updatedDebt.interest_rate || null
-        }).eq("id", selectedDebt.id);
-        if (error) throw new Error(error.message);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["debts"] });
-      toast({ title: "Success", description: "Debt updated!" });
-      setIsEditDialogOpen(false);
-      setSelectedDebt(null);
-    },
-    onError: (error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    },
-  });
-  
-  const deleteDebt = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("debts").delete().eq("id", id);
-      if (error) throw new Error(error.message);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["debts"] });
-      toast({ title: "Success", description: "Debt deleted." });
-      setIsDeleteDialogOpen(false);
-    },
-    onError: (error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    },
-  });
-
-  const addPayment = useMutation({
-    mutationFn: async ({ debt, amount }: { debt: Debt; amount: number }) => {
-      const newPaidAmount = (debt.paid_amount || 0) + amount;
-      const { error } = await supabase
-        .from("debts")
-        .update({ paid_amount: newPaidAmount })
-        .eq("id", debt.id);
-      if (error) throw new Error(error.message);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["debts"] });
-      toast({ title: "Success", description: "Payment added!" });
-      setIsPaymentDialogOpen(false);
-      paymentForm.reset();
-    },
-    onError: (error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    },
-  });
-
-  const onAddSubmit = (values: z.infer<typeof debtSchema>) => addDebt.mutate(values);
-  const onEditSubmit = (values: z.infer<typeof debtSchema>) => updateDebt.mutate(values);
-  const onPaymentSubmit = (values: z.infer<typeof paymentSchema>) => {
-    if (selectedDebt) {
-      addPayment.mutate({ debt: selectedDebt, amount: values.amount });
-    }
+  const handleAddPayment = (debt: any) => {
+    // TODO: Implement payment dialog
+    toast({ title: "Coming Soon", description: "Payment functionality will be added" });
   };
-  
-  const handleEditClick = (debt: Debt) => {
-    setSelectedDebt(debt);
-    editDebtForm.reset({
-        name: debt.name,
-        amount: debt.amount,
-        interest_rate: debt.interest_rate,
-        due_date: debt.due_date,
+
+  const handleEditDebt = (debt: any) => {
+    // TODO: Implement edit dialog
+    toast({ title: "Coming Soon", description: "Edit functionality will be added" });
+  };
+
+  const handleDeleteDebt = (debt: any) => {
+    // TODO: Implement delete confirmation
+    toast({ title: "Coming Soon", description: "Delete functionality will be added" });
+  };
+
+  const handleViewDetails = (debt: any) => {
+    // TODO: Implement debt details view
+    toast({ title: "Coming Soon", description: "Debt details view will be added" });
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      search: "",
+      status: "all",
+      type: "all",
     });
-    setIsEditDialogOpen(true);
-  };
-
-  const handlePaymentClick = (debt: Debt) => {
-    setSelectedDebt(debt);
-    setIsPaymentDialogOpen(true);
-  };
-
-  const handleDeleteClick = (debt: Debt) => {
-    setSelectedDebt(debt);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = () => {
-    if (selectedDebt) {
-        deleteDebt.mutate(selectedDebt.id);
-    }
-  };
-
-  const handleFilterChange = (newFilters: Partial<typeof filters>) => {
-    setFilters((prev) => ({ ...prev, ...newFilters }));
-  };
-
-  const clearFilters = () => {
-    setSearchTerm("");
-    setFilters({});
-    setIsFiltersOpen(false);
   };
 
   return (
-    <div className="w-full p-4 md:p-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+    <div className="w-full p-4 md:p-6 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
-              <span role="img" aria-label="credit card">💳</span> Debts
+            <span role="img" aria-label="credit card">💳</span> Debt Management
           </h1>
           <p className="text-muted-foreground mt-1">
-            Manage your debts and plan your repayments.
+            Track your debts and manage repayments efficiently.
           </p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full md:w-auto"><PlusCircle className="mr-2 h-4 w-4" /> Add Debt</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Add New Debt</DialogTitle>
-              <DialogDescription>
-                Enter the details of your debt below.
-              </DialogDescription>
-            </DialogHeader>
-            <Form {...addDebtForm}>
-              <form onSubmit={addDebtForm.handleSubmit(onAddSubmit)} className="space-y-4">
-                <FormField control={addDebtForm.control} name="name" render={({ field }) => (<FormItem><FormLabel>Debt Name</FormLabel><FormControl><Input placeholder="e.g., Credit Card" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={addDebtForm.control} name="amount" render={({ field }) => (<FormItem><FormLabel>Total Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 5000" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={addDebtForm.control} name="interest_rate" render={({ field }) => (<FormItem><FormLabel>Interest Rate (%)</FormLabel><FormControl><Input type="number" placeholder="e.g., 18.9" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={addDebtForm.control} name="due_date" render={({ field }) => (<FormItem><FormLabel>Due Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <Button type="submit" disabled={addDebt.isPending} className="w-full">{addDebt.isPending ? "Adding..." : "Add Debt"}</Button>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm">
+            <BarChart3 className="mr-2 h-4 w-4" />
+            Reports
+          </Button>
+          <Button onClick={() => setIsAddDialogOpen(true)}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Debt
+          </Button>
+        </div>
       </div>
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-2">
-              <div className="relative w-full">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search debts by name..."
-                  className="w-full rounded-lg bg-background pl-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <Collapsible open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
-                <CollapsibleTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <Filter className="h-4 w-4" />
-                    <span className="sr-only">Toggle filters</span>
-                  </Button>
-                </CollapsibleTrigger>
-              </Collapsible>
+
+      {/* Summary Cards */}
+      <DebtSummary data={summaryData} />
+
+      {/* Filters */}
+      <DebtFilters 
+        filters={filters} 
+        onFiltersChange={setFilters} 
+        onClearFilters={handleClearFilters}
+      />
+
+      {/* Main Content */}
+      <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="borrowed">Borrowed</TabsTrigger>
+          <TabsTrigger value="lent">Lent</TabsTrigger>
+          <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="overdue">Overdue</TabsTrigger>
+          <TabsTrigger value="cleared">Cleared</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value={selectedTab} className="mt-6">
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-6">
+                    <div className="h-32 bg-muted rounded" />
+                  </CardContent>
+                </Card>
+              ))}
             </div>
+          ) : filteredDebts.length === 0 ? (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No debts found</h3>
+                <p className="text-muted-foreground mb-4">
+                  {selectedTab === "all" 
+                    ? "Start by adding your first debt record." 
+                    : `No debts found in the "${selectedTab}" category.`}
+                </p>
+                <Button onClick={() => setIsAddDialogOpen(true)}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add Your First Debt
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredDebts.map((debt) => (
+                <DebtCard
+                  key={debt.id}
+                  debt={debt}
+                  onEdit={handleEditDebt}
+                  onDelete={handleDeleteDebt}
+                  onAddPayment={handleAddPayment}
+                  onViewDetails={handleViewDetails}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
 
-            <Collapsible open={isFiltersOpen} onOpenChange={setIsFiltersOpen} className="w-full">
-              <CollapsibleContent>
-                <div className="flex flex-col md:flex-row gap-4 p-4 border rounded-lg">
-                  <div className="grid gap-2">
-                    <Label htmlFor="start-date">Due Date From</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          id="start-date"
-                          variant={"outline"}
-                          className={cn(
-                            "w-full md:w-[240px] justify-start text-left font-normal",
-                            !filters.startDate && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {filters.startDate ? format(filters.startDate, "PPP") : <span>Pick a start date</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={filters.startDate}
-                          onSelect={(date) => handleFilterChange({ startDate: date })}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="end-date">Due Date To</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          id="end-date"
-                          variant={"outline"}
-                          className={cn(
-                            "w-full md:w-[240px] justify-start text-left font-normal",
-                            !filters.endDate && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {filters.endDate ? format(filters.endDate, "PPP") : <span>Pick an end date</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={filters.endDate}
-                          onSelect={(date) => handleFilterChange({ endDate: date })}
-                          disabled={(date) =>
-                            filters.startDate ? date < filters.startDate : false
-                          }
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div className="flex items-end">
-                    <Button onClick={clearFilters} variant="ghost">Clear Filters</Button>
-                  </div>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-          </div>
-
-          <div className="rounded-md border mt-4">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="text-right">Total Amount</TableHead>
-                  <TableHead className="text-right">Paid Amount</TableHead>
-                  <TableHead className="text-right">Remaining</TableHead>
-                  <TableHead className="hidden md:table-cell">Due Date</TableHead>
-                  <TableHead className="hidden md:table-cell text-right">Interest</TableHead>
-                  <TableHead className="hidden lg:table-cell">Progress</TableHead>
-                  <TableHead><span className="sr-only">Actions</span></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24 ml-auto" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24 ml-auto" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24 ml-auto" /></TableCell>
-                      <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-12 ml-auto" /></TableCell>
-                      <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-28 ml-auto" /></TableCell>
-                      <TableCell><Skeleton className="h-8 w-8 ml-auto rounded-md" /></TableCell>
-                    </TableRow>
-                  ))
-                ) : filteredDebts?.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="h-24 text-center">
-                      No debts found.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredDebts?.map(debt => {
-                    const paidPercentage = debt.amount > 0 && debt.paid_amount ? (debt.paid_amount / debt.amount) * 100 : 0;
-                    const remainingAmount = debt.amount - (debt.paid_amount || 0);
-                    return (
-                      <TableRow key={debt.id}>
-                        <TableCell className="font-medium">{debt.name}</TableCell>
-                        <TableCell className="text-right">₹{debt.amount.toLocaleString()}</TableCell>
-                        <TableCell className="text-right text-green-400">₹{(debt.paid_amount || 0).toLocaleString()}</TableCell>
-                        <TableCell className="text-right text-red-400">₹{remainingAmount.toLocaleString()}</TableCell>
-                        <TableCell className="hidden md:table-cell">{new Date(debt.due_date).toLocaleDateString()}</TableCell>
-                        <TableCell className="hidden md:table-cell text-right">{debt.interest_rate ?? 0}%</TableCell>
-                        <TableCell className="hidden lg:table-cell">
-                          <div className="flex items-center justify-start gap-2">
-                            <Progress value={paidPercentage} className="h-2 w-[100px]" />
-                            <span className="text-xs text-muted-foreground">{`${Math.round(paidPercentage)}%`}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                           <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => handlePaymentClick(debt)}>
-                                    <PlusCircle className="mr-2 h-4 w-4" />
-                                    <span>Add Payment</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleEditClick(debt)}>
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  <span>Edit</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="text-red-500" onClick={() => handleDeleteClick(debt)}>
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  <span>Delete</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Edit Debt Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-                <DialogTitle>Edit Debt</DialogTitle>
-                <DialogDescription>
-                    Update the details of your debt below.
-                </DialogDescription>
-            </DialogHeader>
-          <Form {...editDebtForm}>
-            <form onSubmit={editDebtForm.handleSubmit(onEditSubmit)} className="space-y-4">
-              <FormField control={editDebtForm.control} name="name" render={({ field }) => (<FormItem><FormLabel>Debt Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-              <FormField control={editDebtForm.control} name="amount" render={({ field }) => (<FormItem><FormLabel>Total Amount</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-              <FormField control={editDebtForm.control} name="interest_rate" render={({ field }) => (<FormItem><FormLabel>Interest Rate (%)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-              <FormField control={editDebtForm.control} name="due_date" render={({ field }) => (<FormItem><FormLabel>Due Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
-              <Button type="submit" disabled={updateDebt.isPending} className="w-full">{updateDebt.isPending ? "Saving..." : "Save Changes"}</Button>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Add Payment Dialog */}
-      <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-                <DialogTitle>Add Payment to "{selectedDebt?.name}"</DialogTitle>
-                <DialogDescription>
-                    Enter the amount you want to pay.
-                </DialogDescription>
-            </DialogHeader>
-           <Form {...paymentForm}>
-            <form onSubmit={paymentForm.handleSubmit(onPaymentSubmit)} className="space-y-4">
-              <FormField control={paymentForm.control} name="amount" render={({ field }) => (<FormItem><FormLabel>Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 100" {...field} /></FormControl><FormMessage /></FormItem>)} />
-              <Button type="submit" disabled={addPayment.isPending} className="w-full">{addPayment.isPending ? "Adding..." : "Add"}</Button>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Delete Debt Alert Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                <AlertDialogDescription>This action cannot be undone. This will permanently delete this debt.</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteConfirm} disabled={deleteDebt.isPending}>
-                {deleteDebt.isPending ? 'Deleting...' : 'Delete'}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Add Debt Dialog */}
+      <AddDebtDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onSubmit={(data) => addDebt.mutate(data)}
+        isLoading={addDebt.isPending}
+      />
     </div>
   );
 };
